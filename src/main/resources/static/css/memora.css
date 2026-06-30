@@ -1,0 +1,857 @@
+/* ==========================================================================
+   MEMORA — LEIA EDITION
+   Sistema de design: azul aconchegante + dourado da Leia.
+   Inspirado em Duolingo (ludicidade), Notion (clareza) e Finch (carinho),
+   mas com paleta e voz próprias — nada de azul "corporativo" genérico.
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito+Sans:ital,opsz,wght@0,6..12,400;0,6..12,600;0,6..12,700;0,6..12,800;1,6..12,400&display=swap');
+
+:root {
+  /* ---- Paleta azul (identidade principal) ---- */
+  --memora-blue-900: #1C2B4A;   /* texto principal, "tinta da noite" */
+  --memora-blue-800: #283A5C;
+  --memora-blue-700: #34487A;
+  --memora-blue-600: #4C6FE5;   /* azul de ação primária */
+  --memora-blue-500: #6685EE;
+  --memora-blue-400: #8FA3F2;
+  --memora-blue-300: #B7C5F7;
+  --memora-blue-200: #DCE4FB;
+  --memora-blue-100: #EFF3FE;
+  --memora-blue-50:  #F7F9FF;
+
+  /* ---- Tons quentes complementares (calor humano, fundo acolhedor) ---- */
+  --memora-cream:      #FFF9F0;
+  --memora-cream-deep: #FBF1E2;
+  --memora-gold:       #FFC94D;   /* dourado da pelagem da Leia — usar com moderação (XP, conquistas) */
+  --memora-gold-deep:  #F0A93B;
+  --memora-coral:      #FF8C7A;   /* erro/incentivo, nunca agressivo */
+  --memora-mint:       #5FCBA0;   /* sucesso, acerto */
+
+  /* ---- Neutros ---- */
+  --memora-ink-soft: #5C6B8A;
+  --memora-line: #E4E9F7;
+  --memora-white: #FFFFFF;
+
+  /* ---- Tipografia ---- */
+  --font-display: 'Fredoka', system-ui, sans-serif;
+  --font-body: 'Nunito Sans', system-ui, sans-serif;
+
+  /* ---- Espaçamento / formas ---- */
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 26px;
+  --radius-pill: 999px;
+
+  --shadow-soft: 0 8px 24px -6px rgba(28, 43, 74, 0.12);
+  --shadow-card: 0 4px 16px -4px rgba(28, 43, 74, 0.08);
+  --shadow-pop: 0 14px 36px -8px rgba(76, 111, 229, 0.28);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+body {
+  font-family: var(--font-body);
+  background: linear-gradient(180deg, var(--memora-blue-50) 0%, var(--memora-cream) 100%);
+  color: var(--memora-blue-900);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, .display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  color: var(--memora-blue-900);
+  letter-spacing: -0.01em;
+}
+
+a {
+  color: var(--memora-blue-600);
+  text-decoration: none;
+}
+
+/* Foco de teclado visível — acessibilidade, não decoração */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+.btn:focus-visible {
+  outline: 3px solid var(--memora-blue-400);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ==========================================================================
+   LAYOUT GERAL — MOBILE FIRST
+   Base do CSS já é pensada para telas pequenas (iPhone 14: 390px lógicos);
+   a partir daqui usamos min-width para "ligar" o layout desktop.
+   ========================================================================== */
+
+html, body {
+  overflow-x: hidden; /* nunca permitir scroll horizontal acidental */
+  width: 100%;
+}
+
+img, svg, video {
+  max-width: 100%;
+}
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column; /* mobile: sidebar não fica ao lado, vira bottom-nav */
+}
+
+.app-sidebar {
+  display: none; /* escondida por padrão no mobile — usamos bottom-nav + drawer */
+}
+
+.app-main {
+  flex: 1;
+  width: 100%;
+  padding: 16px 14px 92px; /* padding-bottom dá espaço para a bottom-nav fixa */
+  max-width: 100%;
+}
+
+.app-topbar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.app-topbar > div:first-child h1 {
+  font-size: 1.4rem;
+}
+
+.app-topbar .topbar-acoes {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.app-topbar .topbar-acoes .btn-memora {
+  flex: 1;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+/* ---- Drawer mobile (menu completo, aberto via topbar) ---- */
+.mobile-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--memora-white);
+  border-bottom: 1px solid var(--memora-line);
+  position: sticky;
+  top: 0;
+  z-index: 1040;
+}
+
+.app-drawer {
+  position: fixed;
+  top: 0;
+  left: -300px;
+  width: min(82vw, 300px);
+  height: 100vh;
+  background: var(--memora-white);
+  z-index: 1060;
+  padding: 24px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: left 0.25s ease;
+  box-shadow: var(--shadow-soft);
+  overflow-y: auto;
+}
+
+.app-drawer.aberta { left: 0; }
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 43, 74, 0.4);
+  z-index: 1050;
+}
+
+.sidebar-overlay.visivel { display: block; }
+
+/* ---- Bottom navigation (a navegação principal no iPhone) ---- */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1030;
+  background: var(--memora-white);
+  border-top: 1px solid var(--memora-line);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 6px 4px;
+  padding-bottom: max(6px, env(safe-area-inset-bottom));
+  box-shadow: 0 -4px 16px -4px rgba(28, 43, 74, 0.08);
+}
+
+.bottom-nav__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: var(--memora-ink-soft);
+  font-size: 0.66rem;
+  font-weight: 700;
+  padding: 6px 4px;
+  border-radius: var(--radius-sm);
+  min-width: 56px;
+  text-align: center;
+}
+
+.bottom-nav__item .icon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.bottom-nav__item.active {
+  color: var(--memora-blue-600);
+}
+
+.bottom-nav__item.active .icon {
+  transform: scale(1.08);
+}
+
+.bottom-nav__item--mais {
+  color: var(--memora-ink-soft);
+}
+
+/* ---- Itens de navegação dentro do drawer (reaproveita .nav-link-memora) ---- */
+.nav-link-memora {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 14px; /* alvo de toque confortável (~44px) */
+  border-radius: var(--radius-md);
+  color: var(--memora-ink-soft);
+  font-weight: 600;
+  font-size: 0.96rem;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.nav-link-memora .icon {
+  font-size: 1.15rem;
+  width: 22px;
+  text-align: center;
+}
+
+.nav-link-memora:hover,
+.nav-link-memora:active {
+  background: var(--memora-blue-50);
+  color: var(--memora-blue-700);
+}
+
+.nav-link-memora.active {
+  background: linear-gradient(135deg, var(--memora-blue-600), var(--memora-blue-500));
+  color: var(--memora-white);
+  box-shadow: var(--shadow-pop);
+}
+
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--memora-blue-700);
+  margin-bottom: 20px;
+  padding: 0 6px;
+}
+
+.app-brand .paw { font-size: 1.4rem; }
+
+/* ==========================================================================
+   BREAKPOINT DESKTOP (≥ 992px): liga sidebar fixa, desliga bottom-nav
+   ========================================================================== */
+@media (min-width: 992px) {
+  .app-shell { flex-direction: row; }
+
+  .app-sidebar {
+    display: flex;
+    width: 260px;
+    flex-shrink: 0;
+    background: var(--memora-white);
+    border-right: 1px solid var(--memora-line);
+    padding: 28px 20px;
+    flex-direction: column;
+    gap: 6px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .app-brand { font-size: 1.4rem; margin-bottom: 28px; }
+
+  .app-main {
+    padding: 32px 40px 80px;
+    max-width: 1180px;
+  }
+
+  .app-topbar {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .app-topbar > div:first-child h1 { font-size: 1.75rem; }
+
+  .app-topbar .topbar-acoes .btn-memora { flex: none; }
+
+  .mobile-topbar, .bottom-nav, .app-drawer { display: none !important; }
+}
+
+/* ==========================================================================
+   COMPONENTES — CARDS
+   ========================================================================== */
+
+.card-memora {
+  background: var(--memora-white);
+  border: 1px solid var(--memora-line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: 18px;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .card-memora {
+    border-radius: var(--radius-lg);
+    padding: 24px;
+  }
+}
+
+.card-memora--azul {
+  background: linear-gradient(135deg, var(--memora-blue-600) 0%, var(--memora-blue-500) 100%);
+  color: var(--memora-white);
+  border: none;
+}
+
+.card-memora--azul h1, .card-memora--azul h2, .card-memora--azul h3 {
+  color: var(--memora-white);
+}
+
+.card-memora--creme {
+  background: var(--memora-cream-deep);
+  border: 1px solid #F0E4CC;
+}
+
+/* ==========================================================================
+   BOTÕES — alvo de toque mínimo 44px (diretriz iOS)
+   ========================================================================== */
+
+.btn-memora {
+  font-family: var(--font-display);
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  padding: 13px 22px;
+  min-height: 46px;
+  border: none;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (min-width: 768px) {
+  .btn-memora { padding: 11px 24px; min-height: 42px; }
+}
+
+.btn-memora:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.btn-memora--primario {
+  background: linear-gradient(135deg, var(--memora-blue-600), var(--memora-blue-500));
+  color: var(--memora-white);
+  box-shadow: var(--shadow-pop);
+}
+
+.btn-memora--primario:hover {
+  filter: brightness(1.05);
+}
+
+.btn-memora--secundario {
+  background: var(--memora-blue-100);
+  color: var(--memora-blue-700);
+}
+
+.btn-memora--secundario:hover {
+  background: var(--memora-blue-200);
+}
+
+.btn-memora--dourado {
+  background: linear-gradient(135deg, var(--memora-gold), var(--memora-gold-deep));
+  color: var(--memora-blue-900);
+}
+
+.btn-memora--fantasma {
+  background: transparent;
+  color: var(--memora-ink-soft);
+  border: 1.5px solid var(--memora-line);
+}
+
+.btn-memora--fantasma:hover {
+  border-color: var(--memora-blue-300);
+  color: var(--memora-blue-700);
+}
+
+.btn-memora--perigo {
+  background: var(--memora-coral);
+  color: var(--memora-white);
+}
+
+.btn-memora:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ==========================================================================
+   FORMULÁRIOS
+   ========================================================================== */
+
+.campo-memora {
+  margin-bottom: 18px;
+}
+
+.campo-memora label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--memora-blue-800);
+  margin-bottom: 6px;
+}
+
+.campo-memora input,
+.campo-memora textarea,
+.campo-memora select {
+  width: 100%;
+  padding: 13px 16px;
+  min-height: 46px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--memora-line);
+  background: var(--memora-blue-50);
+  font-family: var(--font-body);
+  font-size: 1rem; /* >=16px evita zoom automático do iOS ao focar */
+  color: var(--memora-blue-900);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.campo-memora input:focus,
+.campo-memora textarea:focus,
+.campo-memora select:focus {
+  outline: none;
+  border-color: var(--memora-blue-500);
+  background: var(--memora-white);
+}
+
+.campo-memora .erro-campo {
+  color: var(--memora-coral);
+  font-size: 0.82rem;
+  margin-top: 5px;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   BARRA DE PROGRESSO (XP / nível)
+   ========================================================================== */
+
+.xp-barra {
+  background: var(--memora-blue-100);
+  border-radius: var(--radius-pill);
+  height: 14px;
+  overflow: hidden;
+  position: relative;
+}
+
+.xp-barra__preenchimento {
+  height: 100%;
+  background: linear-gradient(90deg, var(--memora-gold), var(--memora-gold-deep));
+  border-radius: var(--radius-pill);
+  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ==========================================================================
+   BADGES / PILLS
+   ========================================================================== */
+
+.pill-memora {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 0.82rem;
+  font-weight: 700;
+  background: var(--memora-blue-100);
+  color: var(--memora-blue-700);
+}
+
+.pill-memora--dourado {
+  background: #FFF4DC;
+  color: #8A5E0C;
+}
+
+.pill-memora--mint {
+  background: #E4F8EF;
+  color: #1F7A56;
+}
+
+.pill-memora--coral {
+  background: #FFE9E4;
+  color: #C24A35;
+}
+
+/* ==========================================================================
+   TOASTS DE RECOMPENSA (XP ganho / level up)
+   ========================================================================== */
+
+#memora-toast-container {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: none;
+}
+
+@media (min-width: 768px) {
+  #memora-toast-container {
+    top: 24px;
+    left: auto;
+    right: 24px;
+    max-width: 320px;
+  }
+}
+
+.memora-toast {
+  background: var(--memora-white);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--memora-blue-800);
+  border-left: 5px solid var(--memora-gold);
+  animation: memora-toast-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.memora-toast--erro {
+  border-left-color: var(--memora-coral);
+}
+
+.memora-toast--nivel {
+  border-left-color: var(--memora-blue-600);
+}
+
+@keyframes memora-toast-in {
+  from { transform: translateX(40px); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+
+/* ==========================================================================
+   UTILITÁRIOS
+   ========================================================================== */
+
+.texto-suave { color: var(--memora-ink-soft); }
+.texto-azul  { color: var(--memora-blue-600); }
+.fundo-creme { background: var(--memora-cream); }
+
+.vazio-estado {
+  text-align: center;
+  padding: 50px 24px;
+  color: var(--memora-ink-soft);
+}
+
+.vazio-estado .icone {
+  font-size: 2.6rem;
+  margin-bottom: 12px;
+  display: block;
+}
+
+/* ==========================================================================
+   GRID RESPONSIVO GENÉRICO (substitui o grid do Bootstrap nos módulos novos
+   para não depender de classes col-* em todo lugar)
+   ========================================================================== */
+
+.grid-memora {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.grid-memora--2 { grid-template-columns: repeat(2, 1fr); }
+
+@media (min-width: 600px) {
+  .grid-memora--cards { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 960px) {
+  .grid-memora--cards { grid-template-columns: repeat(3, 1fr); }
+  .grid-memora--4 { grid-template-columns: repeat(4, 1fr); }
+}
+
+@media (min-width: 1180px) {
+  .grid-memora--cards { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ==========================================================================
+   MINI STAT CARDS (estatísticas, perfil, tela da Leia)
+   ========================================================================== */
+
+.stat-card {
+  background: var(--memora-white);
+  border: 1px solid var(--memora-line);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  text-align: center;
+}
+
+.stat-card__valor {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--memora-blue-700);
+  display: block;
+  line-height: 1.1;
+}
+
+.stat-card__label {
+  font-size: 0.78rem;
+  color: var(--memora-ink-soft);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* ==========================================================================
+   RARIDADE (loja, cosméticos, cenários)
+   ========================================================================== */
+
+.raridade-comum     { background: #EAF0FB; color: #4C6FE5; }
+.raridade-rara       { background: #E4F8EF; color: #1F7A56; }
+.raridade-epica      { background: #F1E8FF; color: #7B3FE0; }
+.raridade-legendaria { background: linear-gradient(135deg, #FFF4DC, #FFE0B0); color: #8A5E0C; }
+
+.badge-raridade {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* ==========================================================================
+   ITEM DE LOJA / INVENTÁRIO
+   ========================================================================== */
+
+.item-card {
+  background: var(--memora-white);
+  border: 1px solid var(--memora-line);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  position: relative;
+}
+
+.item-card__icone {
+  font-size: 2.4rem;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.item-card.equipado {
+  border-color: var(--memora-blue-400);
+  box-shadow: 0 0 0 3px var(--memora-blue-100);
+}
+
+.item-card__selo-equipado {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--memora-mint);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+}
+
+.item-card.bloqueado {
+  opacity: 0.55;
+  filter: grayscale(0.4);
+}
+
+/* ==========================================================================
+   TABS (loja: cosméticos/cenários, estatísticas: períodos)
+   ========================================================================== */
+
+.tabs-memora {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 18px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabs-memora::-webkit-scrollbar { display: none; }
+
+.tab-memora {
+  flex-shrink: 0;
+  padding: 9px 18px;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  font-size: 0.86rem;
+  background: var(--memora-blue-50);
+  color: var(--memora-ink-soft);
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.tab-memora.active {
+  background: var(--memora-blue-600);
+  color: white;
+}
+
+/* ==========================================================================
+   MODAL SIMPLES (compra, equipar item, confirmações)
+   ========================================================================== */
+
+.modal-memora-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 43, 74, 0.45);
+  z-index: 1900;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal-memora-overlay.visivel { display: flex; }
+
+.modal-memora {
+  background: var(--memora-white);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  width: 100%;
+  max-width: 380px;
+  max-height: 88vh;
+  overflow-y: auto;
+  text-align: center;
+}
+
+/* ==========================================================================
+   JARDIM — vasinhos e plantas
+   ========================================================================== */
+
+.jardim-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+@media (min-width: 600px) {
+  .jardim-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+@media (min-width: 960px) {
+  .jardim-grid { grid-template-columns: repeat(6, 1fr); }
+}
+
+.vaso-planta {
+  background: var(--memora-cream-deep);
+  border-radius: var(--radius-md);
+  padding: 12px 8px 8px;
+  text-align: center;
+  border: 1px solid #F0E4CC;
+  cursor: pointer;
+}
+
+.vaso-planta__icone {
+  font-size: 2.2rem;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.vaso-planta.vazio {
+  opacity: 0.5;
+  border-style: dashed;
+}
+
+.vaso-planta__barra {
+  height: 5px;
+  background: var(--memora-blue-100);
+  border-radius: var(--radius-pill);
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.vaso-planta__barra-preenchimento {
+  height: 100%;
+  background: var(--memora-mint);
+}
+
+/* ==========================================================================
+   GRID DO DASHBOARD — 1 coluna no mobile, proporção 1/3 + 2/3 em desktop
+   ========================================================================== */
+
+.dashboard-grid {
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 992px) {
+  .dashboard-grid {
+    grid-template-columns: minmax(280px, 1fr) 2fr;
+    align-items: start;
+  }
+}

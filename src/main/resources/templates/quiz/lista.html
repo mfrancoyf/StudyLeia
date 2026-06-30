@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Quizzes')}"></head>
+<body>
+
+<div class="app-shell">
+    <nav th:replace="~{fragments/layout :: sidebar('quizzes')}"></nav>
+    <nav th:replace="~{fragments/layout :: drawer('quizzes')}"></nav>
+    <div th:replace="~{fragments/layout :: sidebar-overlay}"></div>
+
+    <main class="app-main">
+        <div th:replace="~{fragments/layout :: topbar-mobile}"></div>
+
+        <div class="app-topbar">
+            <div>
+                <h1 style="margin-bottom: 2px;">Quizzes</h1>
+                <p class="texto-suave" style="margin: 0;">Teste seus conhecimentos e ganhe XP a cada acerto.</p>
+            </div>
+            <div class="topbar-acoes">
+                <a th:href="@{/quizzes/gerar-com-ia}" class="btn-memora btn-memora--dourado">✨ Gerar com IA</a>
+                <a th:href="@{/quizzes/criar}" class="btn-memora btn-memora--primario">+ Criar manual</a>
+            </div>
+        </div>
+
+        <div id="listaQuizzes" class="grid-memora grid-memora--cards">
+            <p class="texto-suave">Carregando quizzes...</p>
+        </div>
+    </main>
+    <nav th:replace="~{fragments/layout :: bottom-nav('quizzes')}"></nav>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts-finais}"></div>
+
+<script th:inline="javascript">
+    const ICONES_DIFICULDADE = { FACIL: '🟢', MEDIA: '🟡', DIFICIL: '🔴' };
+
+    async function carregarQuizzes() {
+        const container = document.getElementById('listaQuizzes');
+        try {
+            const quizzes = await Memora.chamarApi('/api/quizzes');
+
+            if (!quizzes.length) {
+                container.innerHTML = `
+                    <div class="vazio-estado" style="grid-column: 1 / -1;">
+                        <span class="icone">🧠</span>
+                        Você ainda não tem nenhum quiz. Crie um manualmente ou gere com IA!
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = quizzes.map(quiz => `
+                <div class="card-memora" style="height: 100%; display: flex; flex-direction: column;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                        <span class="pill-memora">${quiz.origem === 'IA' ? '✨ Gerado por IA' : '✍️ Manual'}</span>
+                        <span style="font-size: 1.2rem;">${ICONES_DIFICULDADE[quiz.dificuldade] || ''}</span>
+                    </div>
+                    <h3 style="margin-bottom: 4px;">${quiz.titulo}</h3>
+                    <p class="texto-suave" style="flex: 1;">${quiz.totalQuestoes} questões ${quiz.tema ? '· ' + quiz.tema : ''}</p>
+                    <div style="display: flex; gap: 8px; margin-top: 10px;">
+                        <a href="/quizzes/${quiz.id}/jogar" class="btn-memora btn-memora--primario" style="flex: 1;">Jogar</a>
+                        <button class="btn-memora btn-memora--fantasma" onclick="excluirQuiz('${quiz.id}')" aria-label="Excluir quiz">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        } catch (erro) {
+            container.innerHTML = '<p class="texto-suave">Não foi possível carregar os quizzes agora.</p>';
+        }
+    }
+
+    async function excluirQuiz(id) {
+        if (!confirm('Tem certeza que deseja excluir este quiz?')) return;
+        try {
+            await Memora.chamarApi(`/api/quizzes/${id}`, { method: 'DELETE' });
+            carregarQuizzes();
+        } catch (erro) {
+            Memora.exibirToast({ titulo: 'Não foi possível excluir o quiz.', tipo: 'erro' });
+        }
+    }
+
+    carregarQuizzes();
+</script>
+
+</body>
+</html>

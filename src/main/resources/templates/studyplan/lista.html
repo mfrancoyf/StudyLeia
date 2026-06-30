@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Planos de Estudo')}"></head>
+<body>
+
+<div class="app-shell">
+    <nav th:replace="~{fragments/layout :: sidebar('study-plans')}"></nav>
+    <nav th:replace="~{fragments/layout :: drawer('study-plans')}"></nav>
+    <div th:replace="~{fragments/layout :: sidebar-overlay}"></div>
+
+    <main class="app-main">
+        <div th:replace="~{fragments/layout :: topbar-mobile}"></div>
+
+        <div class="app-topbar">
+            <div>
+                <h1 style="margin-bottom: 2px;">Planos de Estudo</h1>
+                <p class="texto-suave" style="margin: 0;">Cronogramas gerados por IA para suas provas.</p>
+            </div>
+            <a th:href="@{/study-plans/gerar}" class="btn-memora btn-memora--dourado">✨ Montar plano de estudos</a>
+        </div>
+
+        <div id="listaPlanos" class="grid-memora grid-memora--cards">
+            <p class="texto-suave">Carregando planos...</p>
+        </div>
+    </main>
+    <nav th:replace="~{fragments/layout :: bottom-nav('study-plans')}"></nav>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts-finais}"></div>
+
+<script th:inline="javascript">
+    async function carregarPlanos() {
+        const container = document.getElementById('listaPlanos');
+        try {
+            const planos = await Memora.chamarApi('/api/study-plans');
+            if (!planos.length) {
+                container.innerHTML = `
+                    <div class="vazio-estado" style="grid-column:1/-1;">
+                        <span class="icone">📅</span>
+                        Você ainda não tem nenhum plano de estudos. Monte um agora com a ajuda da IA!
+                    </div>`;
+                return;
+            }
+            container.innerHTML = planos.map(plano => `
+                <div class="card-memora" style="position: relative;">
+                    <a href="/study-plans/${plano.id}" style="display:block; text-decoration:none; color: inherit;">
+                        <div style="display:flex; justify-content:space-between; align-items:start; padding-right: 28px;">
+                            <h3 style="margin-bottom: 4px;">${plano.materia}</h3>
+                            ${plano.concluido ? '<span class="pill-memora pill-memora--mint">Concluído</span>' : ''}
+                        </div>
+                        <p class="texto-suave">Prova em ${new Date(plano.dataProva).toLocaleDateString('pt-BR')}</p>
+                        <div class="xp-barra" style="margin-top: 8px;">
+                            <div class="xp-barra__preenchimento" style="width: ${plano.percentualConcluido}%;"></div>
+                        </div>
+                        <p class="texto-suave" style="font-size: 0.8rem; margin-top: 6px;">${Math.round(plano.percentualConcluido)}% concluído · ${plano.totalItens} itens</p>
+                    </a>
+                    <button class="btn-memora btn-memora--fantasma" style="position: absolute; top: 14px; right: 14px; padding: 4px 8px; min-height: 32px;" onclick="excluirPlano(event, '${plano.id}')" aria-label="Excluir plano">🗑️</button>
+                </div>
+            `).join('');
+        } catch (erro) {
+            container.innerHTML = '<p class="texto-suave">Não foi possível carregar os planos agora.</p>';
+        }
+    }
+
+    async function excluirPlano(evento, id) {
+        evento.preventDefault();
+        evento.stopPropagation();
+        if (!confirm('Excluir este plano de estudos?')) return;
+        try {
+            await Memora.chamarApi(`/api/study-plans/${id}`, { method: 'DELETE' });
+            carregarPlanos();
+        } catch (erro) {
+            Memora.exibirToast({ titulo: 'Não foi possível excluir este plano.', tipo: 'erro' });
+        }
+    }
+
+    carregarPlanos();
+</script>
+
+</body>
+</html>

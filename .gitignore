@@ -1,0 +1,14 @@
+# Build
+target/
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+
+# Environment
+.env
+
+# Documentation pessoal
+CONTINUACAO.md
+

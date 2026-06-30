@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Jardim')}"></head>
+<body>
+
+<div class="app-shell">
+    <nav th:replace="~{fragments/layout :: sidebar('garden')}"></nav>
+    <nav th:replace="~{fragments/layout :: drawer('garden')}"></nav>
+    <div th:replace="~{fragments/layout :: sidebar-overlay}"></div>
+
+    <main class="app-main">
+        <div th:replace="~{fragments/layout :: topbar-mobile}"></div>
+
+        <div class="app-topbar">
+            <div>
+                <h1 style="margin-bottom: 2px;">Jardim da Leia</h1>
+                <p class="texto-suave" style="margin: 0;">Suas plantas crescem conforme você estuda.</p>
+            </div>
+            <span class="pill-memora pill-memora--mint" style="font-size: 1rem;">🌰 <span id="saldoSementesTexto">0</span> sementes</span>
+        </div>
+
+        <div class="card-memora" style="display:flex; align-items:center; gap: 16px; margin-bottom: 18px;">
+            <div th:replace="~{fragments/leia :: mascote(humor='FELIZ', estagio='ADULTA', tamanho='76px')}"></div>
+            <p class="texto-suave" style="margin: 0; font-size: 0.88rem;">Cada planta cresce com o seu esforço de estudo. Venha colher o que você plantou!</p>
+        </div>
+
+        <div class="card-memora" style="margin-bottom: 18px; text-align: center;">
+            <span style="font-weight: 700;">🌷 <span id="totalColhidasTexto">0</span> flores colhidas no total</span>
+        </div>
+
+        <div class="jardim-grid" id="jardimGrid">
+            <p class="texto-suave">Carregando jardim...</p>
+        </div>
+    </main>
+    <nav th:replace="~{fragments/layout :: bottom-nav('garden')}"></nav>
+</div>
+
+<!-- Modal de plantio -->
+<div class="modal-memora-overlay" id="modalPlantar">
+    <div class="modal-memora">
+        <h3>O que vamos plantar?</h3>
+        <p class="texto-suave" style="margin-bottom: 14px;">Escolha uma planta para este vasinho.</p>
+        <div id="opcoesPlantas" style="display: flex; flex-direction: column; gap: 10px;"></div>
+        <button class="btn-memora btn-memora--fantasma" style="width: 100%; margin-top: 14px;" onclick="fecharModalPlantar()">Cancelar</button>
+    </div>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts-finais}"></div>
+
+<script th:inline="javascript">
+    const TIPOS_PLANTA = [
+        { tipo: 'FLOR_AZUL', nome: 'Flor Azul', custo: 5, icone: '🌼' },
+        { tipo: 'GIRASSOL', nome: 'Girassol', custo: 8, icone: '🌻' },
+        { tipo: 'ROSA', nome: 'Rosa', custo: 10, icone: '🌹' },
+        { tipo: 'LAVANDA', nome: 'Lavanda', custo: 12, icone: '💜' },
+    ];
+
+    const ICONES_POR_ESTAGIO = { SEMENTE: '🌱', BROTO: '🌿', CRESCENDO: '🌳', FLORESCIDA: '🌸' };
+
+    let vasoSelecionado = null;
+    let jardimAtual = null;
+
+    async function carregarJardim() {
+        try {
+            jardimAtual = await Memora.chamarApi('/api/garden');
+            document.getElementById('saldoSementesTexto').textContent = jardimAtual.sementes;
+            document.getElementById('totalColhidasTexto').textContent = jardimAtual.totalFloresColhidas;
+            renderizarVasos();
+        } catch (erro) {
+            document.getElementById('jardimGrid').innerHTML = '<p class="texto-suave">Não foi possível carregar o jardim agora.</p>';
+        }
+    }
+
+    function renderizarVasos() {
+        const grid = document.getElementById('jardimGrid');
+        const porVaso = {};
+        jardimAtual.plantas.filter(p => !p.colhida).forEach(p => porVaso[p.posicaoVaso] = p);
+
+        let html = '';
+        for (let i = 0; i < 12; i++) {
+            const planta = porVaso[i];
+            if (!planta) {
+                html += `
+                    <div class="vaso-planta vazio" onclick="abrirModalPlantar(${i})">
+                        <span class="vaso-planta__icone">➕</span>
+                        <span style="font-size: 0.72rem; font-weight: 700;">Plantar</span>
+                    </div>`;
+            } else {
+                const podeColher = planta.estagio === 'FLORESCIDA';
+                html += `
+                    <div class="vaso-planta" ${podeColher ? `onclick="colherPlanta('${planta.id}')"` : ''}>
+                        <span class="vaso-planta__icone">${ICONES_POR_ESTAGIO[planta.estagio] || '🌱'}</span>
+                        <span style="font-size: 0.72rem; font-weight: 700;">${planta.nomeExibicao}</span>
+                        <div class="vaso-planta__barra">
+                            <div class="vaso-planta__barra-preenchimento" style="width: ${planta.progressoPercentual}%;"></div>
+                        </div>
+                        ${podeColher ? '<span class="pill-memora pill-memora--mint" style="margin-top:4px; font-size:0.65rem;">Colher!</span>' : ''}
+                    </div>`;
+            }
+        }
+        grid.innerHTML = html;
+    }
+
+    function abrirModalPlantar(posicao) {
+        vasoSelecionado = posicao;
+        const container = document.getElementById('opcoesPlantas');
+        container.innerHTML = TIPOS_PLANTA.map(p => `
+            <button class="btn-memora btn-memora--secundario" style="justify-content: space-between;" onclick="plantar('${p.tipo}')" ${jardimAtual.sementes < p.custo ? 'disabled' : ''}>
+                <span>${p.icone} ${p.nome}</span>
+                <span>🌰 ${p.custo}</span>
+            </button>
+        `).join('');
+        document.getElementById('modalPlantar').classList.add('visivel');
+    }
+
+    function fecharModalPlantar() {
+        document.getElementById('modalPlantar').classList.remove('visivel');
+        vasoSelecionado = null;
+    }
+
+    async function plantar(tipo) {
+        try {
+            await Memora.chamarApi('/api/garden/plantar', {
+                method: 'POST',
+                body: JSON.stringify({ tipo, posicaoVaso: vasoSelecionado }),
+            });
+            Memora.exibirToast({ titulo: '🌱 Semente plantada com sucesso!' });
+            fecharModalPlantar();
+            await carregarJardim();
+        } catch (erro) {
+            Memora.exibirToast({ titulo: erro.message || 'Não foi possível plantar.', tipo: 'erro' });
+        }
+    }
+
+    async function colherPlanta(plantaId) {
+        try {
+            await Memora.chamarApi(`/api/garden/${plantaId}/colher`, { method: 'POST' });
+            Memora.dispararConfete();
+            Memora.reagirLeia('surpresa');
+            Memora.exibirToast({ titulo: '🌸 Flor colhida! Que linda!' });
+            await carregarJardim();
+        } catch (erro) {
+            Memora.exibirToast({ titulo: 'Não foi possível colher esta planta.', tipo: 'erro' });
+        }
+    }
+
+    carregarJardim();
+</script>
+
+</body>
+</html>

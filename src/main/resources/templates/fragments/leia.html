@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!--
+  Fragmento da Leia — versão 2 (redesenho completo).
+  Uso:
+  <div th:replace="~{fragments/leia :: mascote(humor='FELIZ', estagio='ADULTA', tamanho='180px')}"></div>
+
+  humor: TRISTE | ENTEDIADA | NEUTRA | FELIZ | SUPER_FELIZ
+  estagio: FILHOTE | JOVEM | ADULTA | SABIA | RAINHA_LEIA
+
+  DECISÕES DE DESIGN DESTE REDESENHO (ver PROJECT_STATUS.md para o porquê):
+  - Proporção "chibi/cozy-game": cabeça grande e bem redonda, olhos enormes
+    (quase 1/3 da largura do rosto), focinho pequeno e baixo — é essa
+    proporção que lê como "fofo e amigável" em vez de "realista e rígido".
+  - As manchinhas escuras (referência real: pelagem tortie-point da Leia)
+    foram reduzidas a marcas pequenas e arredondadas ao redor da orelha e
+    sobre um olho só — NUNCA formam uma "máscara" simétrica grande em volta
+    dos dois olhos, que é o que lia como sobrancelha franzida/brava antes.
+  - Bochechas rosadas sempre visíveis (não só em humores felizes) — dão
+    calor à expressão em QUALQUER estado emocional, inclusive triste.
+  - A boca SEMPRE existe como uma curva (mesmo a "neutra" tem uma leve
+    curva para cima) — uma boca reta lê como seriedade/tédio mais do que
+    o pretendido.
+  - Estrutura em camadas isoladas por classe CSS continua igual à versão
+    anterior (zero mudança de regra de negócio): leia.css decide o que
+    aparece via display/opacity conforme leia--{humor} e leia--{estagio}.
+    Isso significa que a infraestrutura já suporta troca de arte futura
+    sem qualquer alteração em PetService/GamificationService/etc — só
+    este arquivo + leia.css mudam.
+
+  Paleta (referência das fotos reais da Leia, mantida do redesenho anterior):
+  corpo creme    #F6E8D3 / sombra #ECD9B8
+  manchas        #5B4B3E (tortie, suavizado e usado em manchas pequenas)
+  toque dourado  #E0AA5C
+  focinho/nariz  #C98B7A
+  olhos          #7FB3D5 (azul-acinzentado, com brilho duplo para vivacidade)
+-->
+<div th:fragment="mascote(humor, estagio, tamanho)"
+     class="leia-widget"
+     th:classappend="'leia--' + ${#strings.toLowerCase(#strings.replace(humor,'_','-'))} + ' leia--' + ${#strings.toLowerCase(#strings.replace(estagio,'_','-'))}"
+     th:style="${tamanho} != null ? ('--leia-tamanho:' + ${tamanho}) : ''"
+     id="leiaWidget">
+
+  <span class="leia-coracao" id="leiaCoracao1">💙</span>
+  <span class="leia-coracao" id="leiaCoracao2">💙</span>
+
+  <svg class="leia-svg" id="leiaSvg" viewBox="0 0 220 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Leia, a gatinha mascote">
+
+    <defs>
+      <radialGradient id="leiaCorpoGrad" cx="50%" cy="35%" r="70%">
+        <stop offset="0%" stop-color="#FBF0DD"/>
+        <stop offset="100%" stop-color="#F2DDB8"/>
+      </radialGradient>
+      <radialGradient id="leiaBochechaGrad" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#FFC9B8" stop-opacity="0.85"/>
+        <stop offset="100%" stop-color="#FFC9B8" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+
+    <!-- Rabo (atrás do corpo) — curva única e suave -->
+    <path class="leia-rabo" d="M 166 158 Q 200 150 196 110 Q 193 90 176 92"
+          fill="none" stroke="#F2DDB8" stroke-width="15" stroke-linecap="round"/>
+    <ellipse cx="177" cy="93" rx="7" ry="6" fill="#5B4B3E" opacity="0.55"/>
+
+    <!-- Corpo -->
+    <ellipse cx="110" cy="166" rx="54" ry="34" fill="url(#leiaCorpoGrad)"/>
+    <ellipse cx="110" cy="174" rx="40" ry="18" fill="#FFFBF2" opacity="0.55"/>
+
+    <!-- Patinhas -->
+    <ellipse cx="82" cy="194" rx="13" ry="9" fill="#F2DDB8"/>
+    <ellipse cx="138" cy="194" rx="13" ry="9" fill="#F2DDB8"/>
+
+    <!-- Orelhas (grandes e arredondadas — chibi) -->
+    <path d="M 62 62 Q 50 28 86 46 Q 92 58 86 70 Q 72 66 62 62 Z" fill="#F6E8D3"/>
+    <path d="M 158 62 Q 170 28 134 46 Q 128 58 134 70 Q 148 66 158 62 Z" fill="#F6E8D3"/>
+    <path d="M 67 58 Q 62 36 82 46 Q 85 54 80 62 Q 73 60 67 58 Z" fill="#FFD9C9" opacity="0.65"/>
+    <path d="M 153 58 Q 158 36 138 46 Q 135 54 140 62 Q 147 60 153 58 Z" fill="#FFD9C9" opacity="0.65"/>
+    <!-- Mancha pequena na ponta de UMA orelha só (assimetria real da Leia, sem virar máscara) -->
+    <path d="M 62 62 Q 50 28 64 34 Q 70 44 66 56 Z" fill="#5B4B3E" opacity="0.75"/>
+
+    <!-- Cabeça (grande, bem redonda) -->
+    <circle cx="110" cy="104" r="58" fill="url(#leiaCorpoGrad)"/>
+
+    <!-- Mancha tortie pequena e arredondada — só do lado direito, acima/ao redor do olho,
+         nunca cobrindo os dois lados simetricamente (isso é o que lia como "brava") -->
+    <path d="M 134 70 Q 152 76 150 96 Q 148 108 136 110 Q 128 98 130 84 Q 130 74 134 70 Z"
+          fill="#5B4B3E" opacity="0.5"/>
+    <!-- Toque dourado suave na testa, pequeno e alto, não invasivo -->
+    <ellipse cx="112" cy="62" rx="14" ry="9" fill="#E0AA5C" opacity="0.55"/>
+
+    <!-- Bochechas rosadas — SEMPRE visíveis, dão calor em qualquer humor -->
+    <circle cx="76" cy="118" r="13" fill="url(#leiaBochechaGrad)"/>
+    <circle cx="144" cy="118" r="13" fill="url(#leiaBochechaGrad)"/>
+
+    <!-- ===================== OLHOS (grandes, estilo chibi) ===================== -->
+    <g class="leia-olho leia-olho--esquerdo">
+      <ellipse cx="86" cy="106" rx="16" ry="18" fill="#3A2E26"/>
+      <ellipse cx="86" cy="108" rx="13" ry="15" fill="#7FB3D5"/>
+      <ellipse cx="86" cy="111" rx="7" ry="9" fill="#1C2B4A"/>
+      <circle cx="90" cy="100" r="4" fill="#FFFFFF" opacity="0.95"/>
+      <circle cx="82" cy="113" r="2" fill="#FFFFFF" opacity="0.8"/>
+    </g>
+    <g class="leia-olho leia-olho--direito">
+      <ellipse cx="134" cy="106" rx="16" ry="18" fill="#3A2E26"/>
+      <ellipse cx="134" cy="108" rx="13" ry="15" fill="#7FB3D5"/>
+      <ellipse cx="134" cy="111" rx="7" ry="9" fill="#1C2B4A"/>
+      <circle cx="138" cy="100" r="4" fill="#FFFFFF" opacity="0.95"/>
+      <circle cx="130" cy="113" r="2" fill="#FFFFFF" opacity="0.8"/>
+    </g>
+
+    <!-- Sobrancelhas: NÃO existem por padrão. Só uma marcação muito sutil e
+         curva (preocupação, não bravura) aparece em TRISTE/ENTEDIADA via CSS,
+         posicionada bem mais alta e suave que a versão anterior. -->
+    <path class="leia-sobrancelha leia-sobrancelha--triste" d="M 74 84 Q 86 80 96 86" fill="none" stroke="#5B4B3E" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+    <path class="leia-sobrancelha leia-sobrancelha--triste" d="M 124 86 Q 134 80 146 84" fill="none" stroke="#5B4B3E" stroke-width="2" stroke-linecap="round" opacity="0.55"/>
+
+    <!-- ===================== FOCINHO / NARIZ / BOCA ===================== -->
+    <path d="M 105 124 Q 110 128 115 124 L 112 129 Q 110 131 108 129 Z" fill="#C98B7A"/>
+
+    <!-- Boca feliz -->
+    <path class="leia-boca leia-boca--feliz" d="M 110 130 Q 100 138 90 132 M 110 130 Q 120 138 130 132"
+          fill="none" stroke="#5B4B3E" stroke-width="2.4" stroke-linecap="round"/>
+
+    <!-- Boca neutra: leve curva pra cima (nunca uma linha reta) -->
+    <path class="leia-boca leia-boca--neutra" d="M 92 132 Q 110 137 128 132"
+          fill="none" stroke="#5B4B3E" stroke-width="2.4" stroke-linecap="round"/>
+
+    <!-- Boca triste -->
+    <path class="leia-boca leia-boca--triste" d="M 110 132 Q 101 128 93 133 M 110 132 Q 119 128 127 133"
+          fill="none" stroke="#5B4B3E" stroke-width="2.4" stroke-linecap="round"/>
+
+    <!-- Bigodes -->
+    <g stroke="#FFFFFF" stroke-width="1.6" stroke-linecap="round" opacity="0.9">
+      <path d="M 90 126 Q 58 120 38 118" fill="none"/>
+      <path d="M 90 131 Q 56 132 36 134" fill="none"/>
+      <path d="M 130 126 Q 162 120 182 118" fill="none"/>
+      <path d="M 130 131 Q 164 132 184 134" fill="none"/>
+    </g>
+
+    <!-- Coroa sutil — só visível no estágio RAINHA_LEIA via CSS -->
+    <g class="leia-coroa" opacity="0">
+      <path d="M 92 48 L 98 32 L 107 46 L 112 26 L 117 46 L 126 32 L 132 48 Z" fill="#FFC94D" stroke="#E0AA5C" stroke-width="1"/>
+      <circle cx="112" cy="28" r="2.8" fill="#FF8C7A"/>
+    </g>
+  </svg>
+
+  <noscript>
+    <p>Leia, a gatinha mascote do Memora 🐾</p>
+  </noscript>
+</div>
+
+</body>
+</html>

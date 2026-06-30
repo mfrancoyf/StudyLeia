@@ -1,0 +1,300 @@
+/* ==========================================================================
+   LEIA — mascote SVG/CSS (sem dependências externas, sem Lottie)
+   Referência: gata doméstica creme/tortie-point, máscara facial escura
+   assimétrica, focinho preto, olhos claros, bigodes longos.
+   ========================================================================== */
+
+.leia-widget {
+  position: relative;
+  display: inline-block;
+  width: var(--leia-tamanho, 180px);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.leia-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  transform-origin: center bottom;
+}
+
+/* ---- Respiração idle (todas as poses) ---- */
+.leia-svg {
+  animation: leia-respirar 3.4s ease-in-out infinite;
+}
+
+@keyframes leia-respirar {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50%      { transform: scale(1.012) translateY(-2px); }
+}
+
+/* ---- Piscar (independente do humor) ---- */
+.leia-olho {
+  transform-origin: center;
+  animation: leia-piscar 5.5s ease-in-out infinite;
+}
+.leia-olho--direito { animation-delay: 0.05s; }
+
+@keyframes leia-piscar {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95%           { transform: scaleY(0.08); }
+}
+
+/* ---- Rabo balançando ---- */
+.leia-rabo {
+  transform-origin: 80% 82%;
+  animation: leia-rabo-balancar 2.6s ease-in-out infinite;
+}
+
+@keyframes leia-rabo-balancar {
+  0%, 100% { transform: rotate(-6deg); }
+  50%      { transform: rotate(8deg); }
+}
+
+/* ---- Humor: SUPER_FELIZ — pulinho animado + rabo rápido ---- */
+.leia--super-feliz .leia-svg {
+  animation: leia-pular 0.9s ease-in-out infinite;
+}
+.leia--super-feliz .leia-rabo {
+  animation-duration: 0.7s;
+}
+
+@keyframes leia-pular {
+  0%, 100% { transform: translateY(0) scale(1); }
+  30%      { transform: translateY(-10px) scale(1.02, 0.98); }
+  50%      { transform: translateY(0) scale(0.98, 1.02); }
+}
+
+/* ---- Humor: TRISTE — sem pulo, rabo quase parado, leve "afundar" ---- */
+.leia--triste .leia-svg {
+  animation: leia-triste-balanco 4.5s ease-in-out infinite;
+}
+.leia--triste .leia-rabo {
+  animation-duration: 5s;
+  opacity: 0.85;
+}
+
+@keyframes leia-triste-balanco {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(2px); }
+}
+
+/* ---- Clique / carinho: "pulso" de carinho ---- */
+.leia-widget.leia--clicada .leia-svg {
+  animation: leia-carinho-pulso 0.5s ease-out;
+}
+
+@keyframes leia-carinho-pulso {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.08) rotate(-2deg); }
+  70%  { transform: scale(0.97) rotate(1deg); }
+  100% { transform: scale(1); }
+}
+
+/* ---- Coraçõezinhos ao clicar ---- */
+.leia-coracao {
+  position: absolute;
+  font-size: 1.1rem;
+  opacity: 0;
+  pointer-events: none;
+  left: 50%;
+  top: 30%;
+}
+
+.leia-coracao.ativo {
+  animation: leia-coracao-subir 1.1s ease-out forwards;
+}
+
+@keyframes leia-coracao-subir {
+  0%   { opacity: 0; transform: translate(-50%, 0) scale(0.6); }
+  20%  { opacity: 1; transform: translate(-50%, -10px) scale(1); }
+  100% { opacity: 0; transform: translate(-70%, -70px) scale(1.1); }
+}
+
+/* ---- Balão de fala da Leia ---- */
+.leia-balao {
+  position: relative;
+  background: var(--memora-white);
+  border: 2px solid var(--memora-blue-200);
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--memora-blue-800);
+  box-shadow: var(--shadow-card);
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.leia-balao::after {
+  content: "";
+  position: absolute;
+  bottom: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 16px;
+  background: var(--memora-white);
+  border-right: 2px solid var(--memora-blue-200);
+  border-bottom: 2px solid var(--memora-blue-200);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+}
+
+/* ---- Confete de level-up ---- */
+.confete-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3000;
+  overflow: hidden;
+}
+
+.confete-particula {
+  position: absolute;
+  top: -20px;
+  width: 9px;
+  height: 14px;
+  opacity: 0.9;
+  animation: confete-cair linear forwards;
+}
+
+@keyframes confete-cair {
+  to {
+    transform: translateY(110vh) rotate(540deg);
+    opacity: 0.2;
+  }
+}
+
+/* ---- Estágios de evolução: tamanho relativo ---- */
+.leia--filhote     { --leia-tamanho: 140px; }
+.leia--jovem        { --leia-tamanho: 160px; }
+.leia--adulta       { --leia-tamanho: 180px; }
+.leia--sabia        { --leia-tamanho: 190px; }
+.leia--rainha-leia  { --leia-tamanho: 200px; }
+
+/* ==========================================================================
+   EXPRESSÕES FACIAIS POR HUMOR
+   Por padrão a boca "feliz" fica visível; trocamos via display none/block
+   conforme a classe de humor aplicada no container .leia-widget.
+   ========================================================================== */
+
+.leia-boca--feliz, .leia-boca--neutra, .leia-boca--triste { display: none; }
+.leia-sobrancelha--triste { display: none; }
+.leia-coroa { display: none; }
+
+.leia--feliz .leia-boca--feliz,
+.leia--super-feliz .leia-boca--feliz {
+  display: inline;
+}
+
+.leia--neutra .leia-boca--neutra,
+.leia--entediada .leia-boca--neutra {
+  display: inline;
+}
+
+.leia--triste .leia-boca--triste {
+  display: inline;
+}
+
+.leia--triste .leia-sobrancelha--triste,
+.leia--entediada .leia-sobrancelha--triste {
+  display: inline;
+  opacity: 0.7;
+}
+
+.leia--rainha-leia .leia-coroa {
+  display: inline;
+  opacity: 1;
+  animation: leia-coroa-brilho 2.4s ease-in-out infinite;
+}
+
+@keyframes leia-coroa-brilho {
+  0%, 100% { filter: drop-shadow(0 0 0px rgba(255, 201, 77, 0)); }
+  50%      { filter: drop-shadow(0 0 5px rgba(255, 201, 77, 0.8)); }
+}
+
+/* Estágio FILHOTE: olhos proporcionalmente maiores (mais "bebê-fofo") */
+.leia--filhote .leia-olho {
+  transform: scale(1.12);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* ==========================================================================
+   REAÇÕES PONTUAIS (disparadas via JS adicionando/removendo uma classe
+   temporária no #leiaWidget — usadas em ganho de XP, level-up, conquista
+   desbloqueada, compra realizada, planta colhida)
+   ========================================================================== */
+
+/* Reação de surpresa: olhos "arregalam" rapidamente — usada ao desbloquear
+   conquista, evoluir de estágio, ou comprar item raro/legendário. */
+.leia-widget.leia--surpresa .leia-olho {
+  animation: leia-surpresa-olhos 0.6s ease-out;
+}
+
+@keyframes leia-surpresa-olhos {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.22); }
+  100% { transform: scale(1); }
+}
+
+.leia-widget.leia--surpresa .leia-svg {
+  animation: leia-surpresa-corpo 0.6s ease-out;
+}
+
+@keyframes leia-surpresa-corpo {
+  0%   { transform: translateY(0) scale(1); }
+  25%  { transform: translateY(-6px) scale(1.03); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* Reação de ganho de XP: pequeno "aceno" de alegria, mais sutil que o
+   pulo completo de SUPER_FELIZ — usada a cada ação pontual (responder
+   quiz, criar nota) sem exigir mudança de humor sustentada. */
+.leia-widget.leia--ganhou-xp .leia-svg {
+  animation: leia-ganhou-xp 0.7s ease-out;
+}
+
+@keyframes leia-ganhou-xp {
+  0%   { transform: translateY(0) rotate(0deg); }
+  20%  { transform: translateY(-8px) rotate(-3deg); }
+  50%  { transform: translateY(0) rotate(3deg); }
+  75%  { transform: translateY(-3px) rotate(-1deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
+
+.leia-widget.leia--ganhou-xp .leia-rabo {
+  animation: leia-rabo-balancar 0.4s ease-in-out 2;
+}
+
+/* ==========================================================================
+   OVERLAY DE COSMÉTICOS EQUIPADOS
+   Cada acessório é um emoji posicionado em cima do SVG via posição
+   relativa ao container .leia-widget (que já tem position:relative).
+   ========================================================================== */
+
+.leia-overlay-cosmetico {
+  position: absolute;
+  font-size: 1.8rem;
+  line-height: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 3px rgba(28, 43, 74, 0.18));
+}
+
+.leia-overlay-cosmetico[data-posicao="topo"]     { top: 10%; left: 50%; transform: translateX(-50%); }
+.leia-overlay-cosmetico[data-posicao="olhos"]    { top: 44%; left: 50%; transform: translateX(-50%); font-size: 1.4rem; }
+.leia-overlay-cosmetico[data-posicao="pescoco"]  { top: 66%; left: 50%; transform: translateX(-50%); }
+.leia-overlay-cosmetico[data-posicao="costas"]   { top: 38%; left: 6%;  font-size: 2.1rem; }
+
+/* ==========================================================================
+   CENÁRIO DE FUNDO (Tela Principal da Leia)
+   O gradiente do BackgroundTheme é aplicado aqui via variável CSS.
+   ========================================================================== */
+
+.leia-cenario {
+  border-radius: var(--radius-lg);
+  padding: 32px 20px;
+  background: var(--leia-cenario-gradiente, linear-gradient(135deg, var(--memora-blue-100), var(--memora-blue-50)));
+  transition: background 0.4s ease;
+}

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Modo Foco')}"></head>
+<body>
+
+<div class="app-shell">
+    <nav th:replace="~{fragments/layout :: sidebar('focus')}"></nav>
+    <nav th:replace="~{fragments/layout :: drawer('focus')}"></nav>
+    <div th:replace="~{fragments/layout :: sidebar-overlay}"></div>
+
+    <main class="app-main">
+        <div th:replace="~{fragments/layout :: topbar-mobile}"></div>
+
+        <div class="app-topbar">
+            <div>
+                <h1 style="margin-bottom: 2px;">Modo Foco</h1>
+                <p class="texto-suave" style="margin: 0;">25 minutos de foco, 5 de pausa. A Leia estuda com você.</p>
+            </div>
+        </div>
+
+        <div class="card-memora" style="max-width: 460px; margin: 0 auto; text-align: center; padding: 36px 24px;">
+            <span class="pill-memora" id="faseTexto" style="margin-bottom: 14px; display: inline-flex;">📖 Foco</span>
+
+            <div th:replace="~{fragments/leia :: mascote(humor='NEUTRA', estagio='ADULTA', tamanho='160px')}" style="margin: 0 auto 10px;"></div>
+
+            <div id="timerTexto" style="font-family: var(--font-display); font-size: 3.2rem; font-weight: 700; color: var(--memora-blue-700); margin: 10px 0;">25:00</div>
+
+            <div style="display: flex; gap: 10px; justify-content: center; margin-top: 14px;">
+                <button class="btn-memora btn-memora--primario" id="botaoIniciarPausar" onclick="alternarTimer()">▶️ Iniciar</button>
+                <button class="btn-memora btn-memora--fantasma" onclick="pularFase()">⏭️ Pular</button>
+            </div>
+
+            <p class="texto-suave" style="margin-top: 16px; font-size: 0.85rem;" id="minutosHojeTexto">0 minutos de foco hoje</p>
+        </div>
+
+        <div class="card-memora" style="max-width: 460px; margin: 18px auto 0;">
+            <h3 style="margin-bottom: 10px; font-size: 1rem;">🎯 Missões de hoje</h3>
+            <div id="missoesFocoContainer" style="display: flex; flex-direction: column; gap: 10px;">
+                <p class="texto-suave" style="font-size: 0.85rem;">Carregando missões...</p>
+            </div>
+        </div>
+    </main>
+    <nav th:replace="~{fragments/layout :: bottom-nav('focus')}"></nav>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts-finais}"></div>
+
+<script th:inline="javascript">
+    const DURACAO_FOCO_SEGUNDOS = 25 * 60;
+    const DURACAO_PAUSA_SEGUNDOS = 5 * 60;
+
+    let faseAtual = 'FOCO';
+    let segundosRestantes = DURACAO_FOCO_SEGUNDOS;
+    let intervalo = null;
+    let rodando = false;
+
+    function formatarTempo(segundos) {
+        const min = Math.floor(segundos / 60).toString().padStart(2, '0');
+        const seg = (segundos % 60).toString().padStart(2, '0');
+        return `${min}:${seg}`;
+    }
+
+    const ESTAGIOS_VALIDOS = ['filhote', 'jovem', 'adulta', 'sabia', 'rainha-leia'];
+    let estagioReal = 'ADULTA';
+
+    function aplicarEstagioReal(widget) {
+        widget.className = widget.className
+            .split(' ')
+            .filter(classe => !ESTAGIOS_VALIDOS.some(e => classe === 'leia--' + e))
+            .join(' ');
+        widget.classList.add('leia--' + estagioReal.toLowerCase().replace(/_/g, '-'));
+    }
+
+    function atualizarTela() {
+        document.getElementById('timerTexto').textContent = formatarTempo(segundosRestantes);
+        document.getElementById('faseTexto').innerHTML = faseAtual === 'FOCO' ? '📖 Foco' : '☕ Pausa';
+
+        const widget = document.getElementById('leiaWidget');
+        if (widget) {
+            // A Leia "estuda junto": humor sobe levemente durante o foco
+            // e fica super feliz na pausa, mas sempre respeitando o
+            // estágio de evolução real (buscado de /api/pet/status).
+            Memora.aplicarHumorNoWidget(widget, faseAtual === 'FOCO' ? 'FELIZ' : 'SUPER_FELIZ');
+            aplicarEstagioReal(widget);
+        }
+    }
+
+    async function carregarEstadoRealDaLeia() {
+        try {
+            const status = await Memora.chamarApi('/api/pet/status');
+            estagioReal = status.estagioEvolucao || 'ADULTA';
+            atualizarTela();
+        } catch (erro) {
+            // Mantém o estágio padrão (ADULTA) se a busca falhar.
+        }
+    }
+
+    function alternarTimer() {
+        if (rodando) {
+            pausarTimer();
+        } else {
+            iniciarTimer();
+        }
+    }
+
+    function iniciarTimer() {
+        rodando = true;
+        document.getElementById('botaoIniciarPausar').textContent = '⏸️ Pausar';
+        intervalo = setInterval(() => {
+            segundosRestantes--;
+            atualizarTela();
+            if (segundosRestantes <= 0) {
+                concluirFase();
+            }
+        }, 1000);
+    }
+
+    function pausarTimer() {
+        rodando = false;
+        document.getElementById('botaoIniciarPausar').textContent = '▶️ Continuar';
+        clearInterval(intervalo);
+    }
+
+    async function concluirFase() {
+        clearInterval(intervalo);
+        rodando = false;
+
+        const duracaoMinutos = faseAtual === 'FOCO' ? 25 : 5;
+
+        try {
+            const resultado = await Memora.chamarApi('/api/focus/concluir', {
+                method: 'POST',
+                body: JSON.stringify({ tipo: faseAtual, duracaoMinutos }),
+            });
+
+            if (faseAtual === 'FOCO') {
+                Memora.exibirToast({ titulo: '🎉 Sessão de foco concluída!' });
+                if (resultado.recompensa) {
+                    Memora.processarRecompensa(resultado.recompensa);
+                }
+                document.getElementById('minutosHojeTexto').textContent = `${resultado.totalMinutosFocoHoje} minutos de foco hoje`;
+                carregarMissoesDoDia();
+            } else {
+                Memora.exibirToast({ titulo: '☕ Pausa concluída! Hora de voltar.' });
+            }
+        } catch (erro) {
+            // Falha ao registrar não deve travar o fluxo do timer.
+        }
+
+        proximaFase();
+    }
+
+    function pularFase() {
+        clearInterval(intervalo);
+        rodando = false;
+        proximaFase();
+    }
+
+    function proximaFase() {
+        faseAtual = faseAtual === 'FOCO' ? 'PAUSA' : 'FOCO';
+        segundosRestantes = faseAtual === 'FOCO' ? DURACAO_FOCO_SEGUNDOS : DURACAO_PAUSA_SEGUNDOS;
+        document.getElementById('botaoIniciarPausar').textContent = '▶️ Iniciar';
+        atualizarTela();
+    }
+
+    async function carregarMinutosHoje() {
+        try {
+            const minutos = await Memora.chamarApi('/api/focus/minutos-hoje');
+            document.getElementById('minutosHojeTexto').textContent = `${minutos} minutos de foco hoje`;
+        } catch (erro) {
+            // Sem dado disponível, mantém o texto padrão.
+        }
+    }
+
+    async function carregarMissoesDoDia() {
+        const container = document.getElementById('missoesFocoContainer');
+        try {
+            const missoes = await Memora.chamarApi('/api/missions/hoje');
+            if (!missoes.length) {
+                container.innerHTML = '<p class="texto-suave" style="font-size: 0.85rem;">Nenhuma missão hoje.</p>';
+                return;
+            }
+            container.innerHTML = missoes.map(missao => `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 1.1rem;">${missao.concluida ? '✅' : '⬜'}</span>
+                    <div style="flex: 1;">
+                        <div style="font-weight: 700; font-size: 0.85rem;">${missao.titulo}</div>
+                        <div class="xp-barra" style="height: 6px; margin-top: 3px;">
+                            <div class="xp-barra__preenchimento" style="width: ${Math.min(100, (missao.progresso / missao.meta) * 100)}%;"></div>
+                        </div>
+                    </div>
+                    <span class="texto-suave" style="font-size: 0.78rem;">${missao.progresso}/${missao.meta}</span>
+                </div>
+            `).join('');
+        } catch (erro) {
+            container.innerHTML = '<p class="texto-suave" style="font-size: 0.85rem;">Não foi possível carregar as missões agora.</p>';
+        }
+    }
+
+    atualizarTela();
+    carregarMinutosHoje();
+    carregarEstadoRealDaLeia();
+    carregarMissoesDoDia();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Loja')}"></head>
+<body>
+
+<div class="app-shell">
+    <nav th:replace="~{fragments/layout :: sidebar('shop')}"></nav>
+    <nav th:replace="~{fragments/layout :: drawer('shop')}"></nav>
+    <div th:replace="~{fragments/layout :: sidebar-overlay}"></div>
+
+    <main class="app-main">
+        <div th:replace="~{fragments/layout :: topbar-mobile}"></div>
+
+        <div class="app-topbar">
+            <div>
+                <h1 style="margin-bottom: 2px;">Loja</h1>
+                <p class="texto-suave" style="margin: 0;">Compre acessórios e cenários para a Leia.</p>
+            </div>
+            <span class="pill-memora pill-memora--dourado" style="font-size: 1rem;">🪙 <span id="saldoMoedasTexto">0</span> moedas</span>
+        </div>
+
+        <div class="card-memora" style="display:flex; align-items:center; gap: 16px; margin-bottom: 18px;">
+            <div th:replace="~{fragments/leia :: mascote(humor='FELIZ', estagio='ADULTA', tamanho='76px')}"></div>
+            <p class="texto-suave" style="margin: 0; font-size: 0.88rem;">A Leia adora receber presentes novos — escolha algo especial para ela!</p>
+        </div>
+
+        <div class="tabs-memora">
+            <button class="tab-memora active" data-aba="COSMETICO">🎀 Cosméticos</button>
+            <button class="tab-memora" data-aba="CENARIO">🖼️ Cenários</button>
+            <button class="tab-memora" data-aba="INVENTARIO">🎒 Inventário</button>
+            <button class="tab-memora" data-aba="HISTORICO">🧾 Histórico</button>
+        </div>
+
+        <div id="conteudoLoja" class="grid-memora grid-memora--cards">
+            <p class="texto-suave">Carregando loja...</p>
+        </div>
+    </main>
+    <nav th:replace="~{fragments/layout :: bottom-nav('shop')}"></nav>
+</div>
+
+<!-- Modal de confirmação de compra -->
+<div class="modal-memora-overlay" id="modalCompra">
+    <div class="modal-memora">
+        <div style="font-size: 2.6rem; margin-bottom: 6px;" id="modalIcone"></div>
+        <h3 id="modalNome">Item</h3>
+        <p class="texto-suave" id="modalDescricao"></p>
+        <p style="font-weight: 800; color: var(--memora-blue-700); margin: 10px 0;">🪙 <span id="modalPreco">0</span> moedas</p>
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button class="btn-memora btn-memora--fantasma" style="flex: 1;" onclick="fecharModalCompra()">Cancelar</button>
+            <button class="btn-memora btn-memora--primario" style="flex: 1;" id="botaoConfirmarCompra">Comprar</button>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts-finais}"></div>
+
+<script th:inline="javascript">
+    let catalogoCompleto = [];
+    let inventarioCompleto = [];
+    let abaAtual = 'COSMETICO';
+    let itemSelecionadoParaCompra = null;
+
+    async function carregarLoja() {
+        try {
+            const progresso = await Memora.chamarApi('/api/gamification/progresso');
+            document.getElementById('saldoMoedasTexto').textContent = progresso.moedas;
+
+            catalogoCompleto = await Memora.chamarApi('/api/shop/catalogo');
+            inventarioCompleto = await Memora.chamarApi('/api/shop/inventory');
+
+            renderizarAba();
+        } catch (erro) {
+            document.getElementById('conteudoLoja').innerHTML = '<p class="texto-suave">Não foi possível carregar a loja agora.</p>';
+        }
+    }
+
+    function renderizarAba() {
+        const container = document.getElementById('conteudoLoja');
+
+        if (abaAtual === 'INVENTARIO') {
+            renderizarInventario(container);
+            return;
+        }
+        if (abaAtual === 'HISTORICO') {
+            renderizarHistorico(container);
+            return;
+        }
+
+        const itens = catalogoCompleto.filter(i => i.tipoItem === abaAtual);
+        if (!itens.length) {
+            container.innerHTML = '<div class="vazio-estado" style="grid-column: 1/-1;"><span class="icone">🛍️</span>Nenhum item disponível.</div>';
+            return;
+        }
+
+        container.innerHTML = itens.map(item => `
+            <div class="item-card ${item.equipado ? 'equipado' : ''}">
+                ${item.equipado ? '<span class="item-card__selo-equipado">Equipado</span>' : ''}
+                <span class="item-card__icone">${item.icone}</span>
+                <strong>${item.nome}</strong>
+                <span class="badge-raridade raridade-${item.raridade.toLowerCase()}">${traduzirRaridade(item.raridade)}</span>
+                <p class="texto-suave" style="font-size: 0.82rem; margin: 4px 0;">${item.descricao || ''}</p>
+                ${botaoDoItem(item)}
+            </div>
+        `).join('');
+    }
+
+    function botaoDoItem(item) {
+        if (item.possuido) {
+            if (item.equipado) {
+                return `<button class="btn-memora btn-memora--fantasma" style="width:100%;" onclick="desequiparItem('${item.tipoItem}','${item.id}')">Desequipar</button>`;
+            }
+            return `<button class="btn-memora btn-memora--secundario" style="width:100%;" onclick="equiparItem('${item.tipoItem}','${item.id}')">Equipar</button>`;
+        }
+        return `<button class="btn-memora btn-memora--primario" style="width:100%;" onclick="abrirModalCompra('${item.id}')">🪙 ${item.preco}</button>`;
+    }
+
+    function traduzirRaridade(raridade) {
+        return { COMUM: 'Comum', RARA: 'Rara', EPICA: 'Épica', LEGENDARIA: 'Legendária' }[raridade] || raridade;
+    }
+
+    function renderizarInventario(container) {
+        if (!inventarioCompleto.length) {
+            container.innerHTML = '<div class="vazio-estado" style="grid-column: 1/-1;"><span class="icone">🎒</span>Você ainda não possui nenhum item. Visite as abas de Cosméticos e Cenários!</div>';
+            return;
+        }
+        container.innerHTML = inventarioCompleto.map(item => `
+            <div class="item-card ${item.equipado ? 'equipado' : ''}">
+                ${item.equipado ? '<span class="item-card__selo-equipado">Equipado</span>' : ''}
+                <span class="item-card__icone">${item.icone}</span>
+                <strong>${item.nome}</strong>
+                <button class="btn-memora ${item.equipado ? 'btn-memora--fantasma' : 'btn-memora--secundario'}" style="width:100%;"
+                    onclick="${item.equipado ? 'desequiparItem' : 'equiparItem'}('${item.tipoItem}','${item.itemRefId}')">
+                    ${item.equipado ? 'Desequipar' : 'Equipar'}
+                </button>
+            </div>
+        `).join('');
+    }
+
+    async function renderizarHistorico(container) {
+        try {
+            const historico = await Memora.chamarApi('/api/shop/history');
+            if (!historico.length) {
+                container.innerHTML = '<div class="vazio-estado" style="grid-column: 1/-1;"><span class="icone">🧾</span>Nenhuma compra realizada ainda.</div>';
+                return;
+            }
+            container.innerHTML = `<div class="card-memora" style="grid-column: 1/-1;">` +
+                historico.map(h => `
+                    <div style="display:flex; justify-content:space-between; padding: 10px 0; border-bottom: 1px solid var(--memora-line);">
+                        <div>
+                            <strong>${h.nomeItem}</strong>
+                            <div class="texto-suave" style="font-size: 0.8rem;">${new Date(h.compradoEm).toLocaleString('pt-BR')}</div>
+                        </div>
+                        <span class="pill-memora pill-memora--dourado">🪙 ${h.precoPago}</span>
+                    </div>
+                `).join('') + `</div>`;
+        } catch (erro) {
+            container.innerHTML = '<p class="texto-suave">Não foi possível carregar o histórico.</p>';
+        }
+    }
+
+    function abrirModalCompra(itemId) {
+        itemSelecionadoParaCompra = catalogoCompleto.find(i => i.id === itemId);
+        if (!itemSelecionadoParaCompra) return;
+
+        document.getElementById('modalIcone').textContent = itemSelecionadoParaCompra.icone;
+        document.getElementById('modalNome').textContent = itemSelecionadoParaCompra.nome;
+        document.getElementById('modalDescricao').textContent = itemSelecionadoParaCompra.descricao || '';
+        document.getElementById('modalPreco').textContent = itemSelecionadoParaCompra.preco;
+        document.getElementById('modalCompra').classList.add('visivel');
+    }
+
+    function fecharModalCompra() {
+        document.getElementById('modalCompra').classList.remove('visivel');
+        itemSelecionadoParaCompra = null;
+    }
+
+    document.getElementById('botaoConfirmarCompra').addEventListener('click', async () => {
+        if (!itemSelecionadoParaCompra) return;
+        try {
+            const resultado = await Memora.chamarApi('/api/shop/comprar', {
+                method: 'POST',
+                body: JSON.stringify({ tipoItem: itemSelecionadoParaCompra.tipoItem, itemRefId: itemSelecionadoParaCompra.id }),
+            });
+            Memora.exibirToast({ titulo: `🛍️ Você comprou ${resultado.nomeItem}!` });
+            const raridadeComprada = itemSelecionadoParaCompra?.raridade;
+            Memora.reagirLeia(raridadeComprada === 'EPICA' || raridadeComprada === 'LEGENDARIA' ? 'surpresa' : 'ganhou-xp');
+            document.getElementById('saldoMoedasTexto').textContent = resultado.moedasRestantes;
+            fecharModalCompra();
+            await carregarLoja();
+        } catch (erro) {
+            Memora.exibirToast({ titulo: erro.message || 'Não foi possível concluir a compra.', tipo: 'erro' });
+        }
+    });
+
+    async function equiparItem(tipoItem, itemRefId) {
+        try {
+            await Memora.chamarApi(`/api/shop/equipar?tipoItem=${tipoItem}&itemRefId=${itemRefId}`, { method: 'POST' });
+            Memora.exibirToast({ titulo: '✨ Item equipado!' });
+            Memora.reagirLeia('ganhou-xp');
+            await carregarLoja();
+        } catch (erro) {
+            Memora.exibirToast({ titulo: 'Não foi possível equipar o item.', tipo: 'erro' });
+        }
+    }
+
+    async function desequiparItem(tipoItem, itemRefId) {
+        try {
+            await Memora.chamarApi(`/api/shop/desequipar?tipoItem=${tipoItem}&itemRefId=${itemRefId}`, { method: 'POST' });
+            await carregarLoja();
+        } catch (erro) {
+            Memora.exibirToast({ titulo: 'Não foi possível desequipar o item.', tipo: 'erro' });
+        }
+    }
+
+    document.querySelectorAll('.tab-memora').forEach(botao => {
+        botao.addEventListener('click', () => {
+            document.querySelectorAll('.tab-memora').forEach(b => b.classList.remove('active'));
+            botao.classList.add('active');
+            abaAtual = botao.dataset.aba;
+            renderizarAba();
+        });
+    });
+
+    carregarLoja();
+</script>
+
+</body>
+</html>

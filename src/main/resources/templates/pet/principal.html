@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('A Leia')}"></head>
+<body>
+
+<div class="app-shell">
+    <nav th:replace="~{fragments/layout :: sidebar('leia')}"></nav>
+    <nav th:replace="~{fragments/layout :: drawer('leia')}"></nav>
+    <div th:replace="~{fragments/layout :: sidebar-overlay}"></div>
+
+    <main class="app-main">
+        <div th:replace="~{fragments/layout :: topbar-mobile}"></div>
+
+        <div class="app-topbar">
+            <div>
+                <h1 style="margin-bottom: 2px;">A Leia</h1>
+                <p class="texto-suave" style="margin: 0;">O seu cantinho com a sua gatinha de estimação.</p>
+            </div>
+        </div>
+
+        <!-- Cenário equipado + Leia + balão -->
+        <div class="leia-cenario" id="cenarioContainer" style="text-align: center; margin-bottom: 20px;">
+            <span class="pill-memora" id="nomeCenarioTexto" style="margin-bottom: 14px; display: inline-flex;">🛏️ Quarto de Estudos</span>
+
+            <div id="leiaBalaoPrincipal" class="leia-balao" style="display: none; max-width: 280px; margin-left: auto; margin-right: auto;"></div>
+
+            <div style="position: relative; display: inline-block; margin: 10px 0;">
+                <div th:replace="~{fragments/leia :: mascote(humor='FELIZ', estagio='ADULTA', tamanho='220px')}"></div>
+                <div id="overlaysCosmeticos"></div>
+            </div>
+
+            <h3 id="nomePetTextoPrincipal" style="margin-top: 6px;">Leia</h3>
+            <p class="texto-suave" id="estagioTextoPrincipal" style="margin: 0 0 4px;">Fase adulta</p>
+        </div>
+
+        <!-- Stats rápidos -->
+        <div class="grid-memora grid-memora--4" style="margin-bottom: 20px;">
+            <div class="stat-card">
+                <span class="stat-card__valor" id="nivelStat">1</span>
+                <span class="stat-card__label">Nível</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-card__valor" id="xpStat">0</span>
+                <span class="stat-card__label">XP total</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-card__valor" id="moedasStat">0</span>
+                <span class="stat-card__label">Moedas</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-card__valor" id="streakStat">0</span>
+                <span class="stat-card__label">Sequência</span>
+            </div>
+        </div>
+
+        <div class="grid-memora grid-memora--cards">
+            <!-- Próxima evolução -->
+            <div class="card-memora">
+                <h3 style="margin-bottom: 10px;">✨ Próxima evolução</h3>
+                <p class="texto-suave" id="proximaEvolucaoTexto" style="margin-bottom: 10px;">Calculando...</p>
+                <div class="xp-barra">
+                    <div class="xp-barra__preenchimento" id="evolucaoBarraPreenchimento" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <!-- Acessórios equipados -->
+            <div class="card-memora">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 style="margin: 0;">🎀 Acessórios</h3>
+                    <a th:href="@{/shop}" class="texto-azul" style="font-size: 0.85rem; font-weight: 700;">Ir à loja</a>
+                </div>
+                <div id="acessoriosEquipadosLista" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <p class="texto-suave">Carregando...</p>
+                </div>
+            </div>
+
+            <!-- Prévia do jardim -->
+            <div class="card-memora">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 style="margin: 0;">🌱 Jardim</h3>
+                    <a th:href="@{/garden}" class="texto-azul" style="font-size: 0.85rem; font-weight: 700;">Ver jardim</a>
+                </div>
+                <p class="texto-suave" id="resumoJardimTexto">Carregando...</p>
+            </div>
+        </div>
+    </main>
+    <nav th:replace="~{fragments/layout :: bottom-nav('leia')}"></nav>
+</div>
+
+<div th:replace="~{fragments/layout :: scripts-finais}"></div>
+
+<script th:inline="javascript">
+    const FRASES_POR_HUMOR_LEIA = {
+        TRISTE: 'Estou com saudade de estudar com você... 🥺',
+        ENTEDIADA: 'Bocejando de tédio aqui... vamos estudar?',
+        NEUTRA: 'Pronta para começar quando você quiser!',
+        FELIZ: 'Que bom te ver! Vamos estudar juntas? 💙',
+        SUPER_FELIZ: 'Estou tão feliz com seu progresso! Você é demais! ✨',
+    };
+
+    const NOMES_ESTAGIO_LEIA = {
+        FILHOTE: 'Fase filhote', JOVEM: 'Fase jovem', ADULTA: 'Fase adulta',
+        SABIA: 'Fase sábia', RAINHA_LEIA: 'Rainha Leia 👑',
+    };
+
+    const NIVEL_PROXIMO_ESTAGIO = { FILHOTE: 5, JOVEM: 10, ADULTA: 20, SABIA: 30, RAINHA_LEIA: null };
+
+    function aplicarHumorEEstagioPrincipal(humor, estagio) {
+        const widget = document.getElementById('leiaWidget');
+        if (!widget) return;
+        widget.className = widget.className.split(' ').filter(c => !c.startsWith('leia--')).join(' ');
+        widget.classList.add('leia--' + humor.toLowerCase().replace(/_/g, '-'));
+        widget.classList.add('leia--' + estagio.toLowerCase().replace(/_/g, '-'));
+
+        const balao = document.getElementById('leiaBalaoPrincipal');
+        balao.textContent = FRASES_POR_HUMOR_LEIA[humor] || '';
+        balao.style.display = 'block';
+
+        document.getElementById('estagioTextoPrincipal').textContent = NOMES_ESTAGIO_LEIA[estagio] || estagio;
+    }
+
+    function renderizarOverlays(acessorios) {
+        const container = document.getElementById('overlaysCosmeticos');
+        container.innerHTML = acessorios.map(item => `
+            <span class="leia-overlay-cosmetico" data-posicao="${item.posicaoOverlay || 'topo'}">${item.icone}</span>
+        `).join('');
+    }
+
+    function renderizarListaAcessorios(acessorios) {
+        const container = document.getElementById('acessoriosEquipadosLista');
+        if (!acessorios.length) {
+            container.innerHTML = '<p class="texto-suave">Nenhum acessório equipado ainda. Visite a loja!</p>';
+            return;
+        }
+        container.innerHTML = acessorios.map(item => `
+            <span class="pill-memora pill-memora--dourado">${item.icone} ${item.nome}</span>
+        `).join('');
+    }
+        const container = document.getElementById('acessoriosEquipadosLista');
+        if (!acessorios.length) {
+            container.innerHTML = '<p class="texto-suave">Nenhum acessório equipado ainda. Visite a loja!</p>';
+            return;
+        }
+        container.innerHTML = acessorios.map(item => `
+            <span class="pill-memora pill-memora--dourado">${item.icone} ${item.nome}</span>
+        `).join('');
+    }
+
+    function calcularProximaEvolucao(nivelAtual, estagio) {
+        const proximoNivel = NIVEL_PROXIMO_ESTAGIO[estagio];
+        if (!proximoNivel) {
+            document.getElementById('proximaEvolucaoTexto').textContent = 'A Leia já alcançou a evolução máxima — Rainha Leia! 👑';
+            document.getElementById('evolucaoBarraPreenchimento').style.width = '100%';
+            return;
+        }
+        const nivelBase = { FILHOTE: 1, JOVEM: 5, ADULTA: 10, SABIA: 20 }[estagio] || 1;
+        const progresso = Math.min(100, ((nivelAtual - nivelBase) / (proximoNivel - nivelBase)) * 100);
+        document.getElementById('proximaEvolucaoTexto').textContent =
+            `Faltam ${Math.max(0, proximoNivel - nivelAtual)} níveis para a próxima evolução (nível ${proximoNivel}).`;
+        document.getElementById('evolucaoBarraPreenchimento').style.width = progresso + '%';
+    }
+
+    async function carregarTelaLeia() {
+        try {
+            const [dashboard, inventario] = await Promise.all([
+                Memora.chamarApi('/api/dashboard'),
+                Memora.chamarApi('/api/shop/inventory'),
+            ]);
+
+            document.getElementById('nomePetTextoPrincipal').textContent = dashboard.pet.nomePet;
+            aplicarHumorEEstagioPrincipal(dashboard.pet.humor, dashboard.pet.estagioEvolucao);
+
+            document.getElementById('nivelStat').textContent = dashboard.progresso.nivelAtual;
+            document.getElementById('xpStat').textContent = dashboard.progresso.xpTotal;
+            document.getElementById('moedasStat').textContent = dashboard.progresso.moedas;
+            document.getElementById('streakStat').textContent = dashboard.progresso.sequenciaAtual;
+
+            calcularProximaEvolucao(dashboard.progresso.nivelAtual, dashboard.pet.estagioEvolucao);
+
+            const cosmeticosEquipados = inventario.filter(i => i.equipado && i.tipoItem === 'COSMETICO');
+            renderizarOverlays(cosmeticosEquipados);
+            renderizarListaAcessorios(cosmeticosEquipados);
+
+            const cenarioEquipado = inventario.find(i => i.equipado && i.tipoItem === 'CENARIO');
+            if (cenarioEquipado) {
+                document.getElementById('nomeCenarioTexto').innerHTML = `${cenarioEquipado.icone} ${cenarioEquipado.nome}`;
+                if (cenarioEquipado.gradiente) {
+                    document.getElementById('cenarioContainer').style.setProperty('--leia-cenario-gradiente', cenarioEquipado.gradiente);
+                }
+            }
+
+            const jardim = await Memora.chamarApi('/api/garden');
+            const plantasAtivas = jardim.plantas.filter(p => !p.colhida).length;
+            document.getElementById('resumoJardimTexto').textContent =
+                `🌰 ${jardim.sementes} sementes · ${plantasAtivas} planta(s) crescendo · ${jardim.totalFloresColhidas} flores colhidas`;
+
+        } catch (erro) {
+            Memora.exibirToast({ titulo: 'Não foi possível carregar a tela da Leia agora.', tipo: 'erro' });
+        }
+    }
+
+    carregarTelaLeia();
+</script>
+
+</body>
+</html>

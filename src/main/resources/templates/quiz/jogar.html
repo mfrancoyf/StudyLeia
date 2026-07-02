@@ -164,7 +164,9 @@
             document.getElementById('quizTituloTexto').textContent = quizAtual.titulo;
             renderizarQuestaoAtual();
         } catch (erro) {
-            Memora.exibirToast({ titulo: 'Não foi possível carregar este quiz.', tipo: 'erro' });
+            document.getElementById('perguntaTexto').textContent = 'Não foi possível carregar este quiz.';
+            document.getElementById('alternativasContainer').innerHTML = '<p class="texto-suave">Tente voltar à lista de quizzes e abrir novamente.</p>';
+            Memora.exibirToast({ titulo: erro.message || 'Não foi possível carregar este quiz.', tipo: 'erro' });
         }
     }
 

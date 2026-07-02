@@ -79,6 +79,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(corpo);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErroResponse> tratarArgumentoInvalido(IllegalArgumentException ex, HttpServletRequest req) {
+        return construir(HttpStatus.BAD_REQUEST, ex.getMessage(), req);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErroResponse> tratarGenerico(Exception ex, HttpServletRequest req) {
         log.error("Erro inesperado: {}", ex.getMessage(), ex);

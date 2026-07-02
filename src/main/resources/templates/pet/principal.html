@@ -136,15 +136,6 @@
             <span class="pill-memora pill-memora--dourado">${item.icone} ${item.nome}</span>
         `).join('');
     }
-        const container = document.getElementById('acessoriosEquipadosLista');
-        if (!acessorios.length) {
-            container.innerHTML = '<p class="texto-suave">Nenhum acessório equipado ainda. Visite a loja!</p>';
-            return;
-        }
-        container.innerHTML = acessorios.map(item => `
-            <span class="pill-memora pill-memora--dourado">${item.icone} ${item.nome}</span>
-        `).join('');
-    }
 
     function calcularProximaEvolucao(nivelAtual, estagio) {
         const proximoNivel = NIVEL_PROXIMO_ESTAGIO[estagio];
@@ -195,6 +186,9 @@
                 `🌰 ${jardim.sementes} sementes · ${plantasAtivas} planta(s) crescendo · ${jardim.totalFloresColhidas} flores colhidas`;
 
         } catch (erro) {
+            document.getElementById('proximaEvolucaoTexto').textContent = 'Não foi possível calcular a evolução agora.';
+            document.getElementById('acessoriosEquipadosLista').innerHTML = '<p class="texto-suave">Não foi possível carregar os acessórios.</p>';
+            document.getElementById('resumoJardimTexto').textContent = 'Não foi possível carregar o jardim.';
             Memora.exibirToast({ titulo: 'Não foi possível carregar a tela da Leia agora.', tipo: 'erro' });
         }
     }

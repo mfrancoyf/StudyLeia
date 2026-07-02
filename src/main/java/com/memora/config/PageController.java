@@ -72,11 +72,6 @@ public class PageController {
         return "quiz/lista";
     }
 
-    @GetMapping("/quizzes/{id}/jogar")
-    public String jogarQuiz() {
-        return "quiz/jogar";
-    }
-
     @GetMapping("/quizzes/criar")
     public String criarQuiz() {
         return "quiz/criar";
@@ -85,6 +80,11 @@ public class PageController {
     @GetMapping("/quizzes/gerar-com-ia")
     public String gerarQuizComIA() {
         return "quiz/gerar-ia";
+    }
+
+    @GetMapping("/quizzes/{id}/jogar")
+    public String jogarQuiz() {
+        return "quiz/jogar";
     }
 
     @GetMapping("/notes")

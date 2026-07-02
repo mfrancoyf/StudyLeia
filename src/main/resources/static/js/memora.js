@@ -23,7 +23,10 @@ const Memora = (() => {
     const corpo = tipoConteudo.includes('application/json') ? await resposta.json() : null;
 
     if (!resposta.ok) {
-      const mensagem = corpo?.mensagem || 'Algo deu errado. Tente novamente.';
+      let mensagem = corpo?.mensagem || 'Algo deu errado. Tente novamente.';
+      if (corpo?.camposInvalidos && Object.keys(corpo.camposInvalidos).length) {
+        mensagem = Object.values(corpo.camposInvalidos).join(' ');
+      }
       const erro = new Error(mensagem);
       erro.camposInvalidos = corpo?.camposInvalidos || null;
       erro.status = resposta.status;

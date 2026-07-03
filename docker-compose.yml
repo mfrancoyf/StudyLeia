@@ -6,7 +6,7 @@ services:
     restart: unless-stopped
 
     environment:
-      MYSQL_ROOT_PASSWORD: memora_root_pw
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: memora_db
       MYSQL_CHARACTER_SET_SERVER: utf8mb4
       MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
@@ -18,7 +18,7 @@ services:
       - memora-mysql-data:/var/lib/mysql
 
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pmemora_root_pw"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -57,35 +57,30 @@ services:
       mysql:
         condition: service_healthy
 
+    env_file:
+      - .env
+
     environment:
-
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/memora_db?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=America/Sao_Paulo
-
       SPRING_DATASOURCE_USERNAME: root
-
-      DB_PASSWORD: memora_root_pw
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD}
 
       SPRING_PROFILES_ACTIVE: prod
 
-      JWT_SECRET: memora-leia-edition-chave-secreta-trocar-em-producao-32bytes+
+      JWT_SECRET: ${JWT_SECRET}
 
-      MEMORA_IA_PROVIDER: MOCK
+      MEMORA_IA_PROVIDER: ${MEMORA_IA_PROVIDER}
 
-      GEMINI_API_KEY:
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
 
-      GROQ_API_KEY:
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
 
-      OPENROUTER_API_KEY:
-
-      MAIL_HOST: smtp.gmail.com
-
-      MAIL_PORT: 587
-
-      MAIL_USERNAME:
-
-      MAIL_PASSWORD:
-
-      APP_BASE_URL: http://localhost:8080
+      APP_BASE_URL: ${APP_BASE_URL}
 
     ports:
       - "8080:8080"

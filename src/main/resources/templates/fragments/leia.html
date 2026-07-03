@@ -144,6 +144,24 @@
       <path d="M 92 48 L 98 32 L 107 46 L 112 26 L 117 46 L 126 32 L 132 48 Z" fill="#FFC94D" stroke="#E0AA5C" stroke-width="1"/>
       <circle cx="112" cy="28" r="2.8" fill="#FF8C7A"/>
     </g>
+
+    <!--
+      ===================== ACCESSORY LAYER =====================
+      Camada de acessórios cosméticos comprados na loja (laço, óculos,
+      chapéu, gravata, etc). Fica DENTRO do mesmo <svg viewBox="0 0 220 210">
+      do corpo da Leia de propósito: qualquer elemento desenhado aqui usa a
+      MESMA régua de coordenadas da cabeça/olhos/orelhas, então nunca
+      desalinha, nunca "flutua" e escala automaticamente junto com o
+      widget (--leia-tamanho), em qualquer resolução — sem position:absolute
+      solto em cima da imagem.
+
+      Este <g> começa vazio. Quem preenche é o AccessoryRenderer em
+      /js/leia-accessories.js (função LeiaAccessories.aplicar), que lê
+      o inventário do usuário e injeta um <g class="leia-acessorio"> por
+      item equipado, posicionado a partir de âncoras anatômicas fixas
+      (ver LEIA_ANCHORS nesse arquivo) — nunca com valores soltos/aleatórios.
+    -->
+    <g id="leiaAcessorios" class="leia-acessorios" aria-hidden="true"></g>
   </svg>
 
   <noscript>

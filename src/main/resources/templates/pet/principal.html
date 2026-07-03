@@ -26,7 +26,6 @@
 
             <div style="position: relative; display: inline-block; margin: 10px 0;">
                 <div th:replace="~{fragments/leia :: mascote(humor='FELIZ', estagio='ADULTA', tamanho='220px')}"></div>
-                <div id="overlaysCosmeticos"></div>
             </div>
 
             <h3 id="nomePetTextoPrincipal" style="margin-top: 6px;">Leia</h3>
@@ -119,11 +118,13 @@
         document.getElementById('estagioTextoPrincipal').textContent = NOMES_ESTAGIO_LEIA[estagio] || estagio;
     }
 
+    // A renderização visual dos acessórios (posição, escala, rotação) vive
+    // inteiramente em /js/leia-accessories.js (AccessoryConfig + AccessoryRenderer).
+    // Aqui só entregamos os itens equipados — lógica de inventário separada
+    // da lógica de desenho.
     function renderizarOverlays(acessorios) {
-        const container = document.getElementById('overlaysCosmeticos');
-        container.innerHTML = acessorios.map(item => `
-            <span class="leia-overlay-cosmetico" data-posicao="${item.posicaoOverlay || 'topo'}">${item.icone}</span>
-        `).join('');
+        const svg = document.getElementById('leiaSvg');
+        window.LeiaAccessories.aplicar(svg, acessorios);
     }
 
     function renderizarListaAcessorios(acessorios) {

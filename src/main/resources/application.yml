@@ -8,13 +8,17 @@ spring:
   profiles:
     active: dev
 
+  # ===================== BANCO DE DADOS (MySQL via XAMPP) =====================
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/memora_db?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=America/Sao_Paulo}
-    username: ${SPRING_DATASOURCE_USERNAME:root}
+    url: jdbc:mysql://localhost:3306/memora_db?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=America/Sao_Paulo
+    username: root
     password: ${DB_PASSWORD:}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
+    # ddl-auto = validate: o schema é responsabilidade exclusiva do
+    # Flyway (migrations). O Hibernate apenas confere se as entidades
+    # batem com as tabelas existentes — nunca cria/altera tabelas.
     hibernate:
       ddl-auto: validate
     show-sql: false
@@ -58,8 +62,11 @@ springdoc:
   api-docs:
     path: /v3/api-docs
 
+# ===================== CONFIGURAÇÕES PRÓPRIAS DO MEMORA =====================
 memora:
   jwt:
+    # Chave secreta usada para assinar os tokens JWT (HMAC-SHA256).
+    # Em produção isso viria de variável de ambiente / cofre de segredos.
     secret: ${JWT_SECRET:memora-leia-edition-chave-secreta-trocar-em-producao-32bytes+}
     expiracao-minutos: 120
 
@@ -67,18 +74,18 @@ memora:
     url-base: ${APP_BASE_URL:http://localhost:8080}
 
   ia:
+    # Provider ativo da camada de IA desacoplada. Valores possíveis:
+    # MOCK (não exige chave, gera quizzes/planos localmente),
+    # GEMINI, GROQ, OPENROUTER.
     provider: ${MEMORA_IA_PROVIDER:MOCK}
-
     gemini:
       api-key: ${GEMINI_API_KEY:}
-      modelo: ${GEMINI_MODEL:gemini-2.5-flash}
+      modelo: ${GEMINI_MODEL:gemini-1.5-flash}
       url-base: https://generativelanguage.googleapis.com/v1beta/models
-
     groq:
       api-key: ${GROQ_API_KEY:}
       modelo: ${GROQ_MODEL:llama-3.1-8b-instant}
       url-base: https://api.groq.com/openai/v1
-
     openrouter:
       api-key: ${OPENROUTER_API_KEY:}
       modelo: ${OPENROUTER_MODEL:meta-llama/llama-3.1-8b-instruct:free}
@@ -88,6 +95,5 @@ logging:
   level:
     com.memora: INFO
     org.hibernate.SQL: WARN
-
   pattern:
     console: "%d{HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n"

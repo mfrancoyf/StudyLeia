@@ -52,7 +52,7 @@ public class ShopService {
         for (CosmeticItem item : cosmeticItemRepository.findByAtivoTrue()) {
             catalogo.add(new ItemLojaResponse(
                     item.getId(), TipoItemLoja.COSMETICO.name(), item.getNome(), item.getDescricao(),
-                    item.getCategoria().name(), item.getRaridade().name(), item.getPreco(), item.getIcone(), null,
+                    item.getCategoria().name(), item.getRaridade().name(), item.getPreco(), item.getIcone(), null, null,
                     possuidos.contains(item.getId()), equipados.contains(item.getId())
             ));
         }
@@ -61,6 +61,7 @@ public class ShopService {
             catalogo.add(new ItemLojaResponse(
                     tema.getId(), TipoItemLoja.CENARIO.name(), tema.getNome(), tema.getDescricao(),
                     "CENARIO", tema.getRaridade().name(), tema.getPreco(), tema.getIcone(), tema.getGradiente(),
+                    tema.getCodigoCena(),
                     possuidos.contains(tema.getId()), equipados.contains(tema.getId())
             ));
         }
@@ -78,6 +79,7 @@ public class ShopService {
                         iconeDoItem(inv.getTipoItem(), inv.getItemRefId()),
                         posicaoOverlayDoItem(inv.getTipoItem(), inv.getItemRefId()),
                         gradienteDoItem(inv.getTipoItem(), inv.getItemRefId()),
+                        codigoCenaDoItem(inv.getTipoItem(), inv.getItemRefId()),
                         inv.isEquipado()
                 ))
                 .toList();
@@ -218,5 +220,19 @@ public class ShopService {
             return null;
         }
         return backgroundThemeRepository.findById(itemRefId).map(BackgroundTheme::getGradiente).orElse(null);
+    }
+
+    /**
+     * Código da cena viva associada a este cenário, se houver (ver
+     * `BackgroundTheme.codigoCena`). É `null` para cosméticos e para
+     * cenários que ainda não têm uma cena viva implementada — o
+     * frontend trata esse `null` como sinal para usar o fallback de
+     * gradiente.
+     */
+    private String codigoCenaDoItem(TipoItemLoja tipo, UUID itemRefId) {
+        if (tipo != TipoItemLoja.CENARIO) {
+            return null;
+        }
+        return backgroundThemeRepository.findById(itemRefId).map(BackgroundTheme::getCodigoCena).orElse(null);
     }
 }

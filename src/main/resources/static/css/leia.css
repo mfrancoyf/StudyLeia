@@ -309,7 +309,14 @@
 
 .leia-cenario {
   border-radius: var(--radius-lg);
-  padding: 32px 20px;
   background: var(--leia-cenario-gradiente, linear-gradient(135deg, var(--memora-blue-100), var(--memora-blue-50)));
   transition: background 0.4s ease;
+}
+
+/* Padding vive no conteúdo (não no card) para a camada de cena
+   (.leia-cenario__scene, position:absolute; inset:0 — ver
+   leia-scenes.css) poder cobrir o card inteiro, cantos incluídos,
+   em vez de deixar uma faixa sólida sem cenário ao redor. */
+.leia-cenario__conteudo {
+  padding: 32px 20px;
 }

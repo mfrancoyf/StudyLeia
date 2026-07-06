@@ -19,6 +19,7 @@ public record ItemLojaResponse(
         long preco,
         String icone,
         String gradiente,
+        String codigoCena,
         boolean possuido,
         boolean equipado
 ) {

@@ -19,17 +19,36 @@
         </div>
 
         <!-- Cenário equipado + Leia + balão -->
+        <!--
+            Estrutura em duas camadas, para o cenário viver ATRÁS da Leia
+            sem nunca deslocar sua posição:
+              - #cenarioScene  → camada de fundo (z-index 0), onde o
+                                 LeiaScenes.SceneManager monta a cena viva
+                                 (ver /js/scenes/*.js). Fica vazia e o
+                                 gradiente antigo aparece por trás quando o
+                                 cenário equipado ainda não tem cena viva.
+              - .leia-cenario__conteudo → camada de conteúdo (z-index 1),
+                                 exatamente o que já existia antes: pill,
+                                 balão, mascote e textos, sem nenhuma
+                                 mudança de posição ou comportamento.
+        -->
         <div class="leia-cenario" id="cenarioContainer" style="text-align: center; margin-bottom: 20px;">
-            <span class="pill-memora" id="nomeCenarioTexto" style="margin-bottom: 14px; display: inline-flex;">🛏️ Quarto de Estudos</span>
+            <div class="leia-cenario__scene" id="cenarioScene" aria-hidden="true"></div>
 
-            <div id="leiaBalaoPrincipal" class="leia-balao" style="display: none; max-width: 280px; margin-left: auto; margin-right: auto;"></div>
+            <div class="leia-cenario__conteudo">
+                <span class="pill-memora" id="nomeCenarioTexto" style="margin-bottom: 14px; display: inline-flex;">🛏️ Quarto de Estudos</span>
 
-            <div style="position: relative; display: inline-block; margin: 10px 0;">
-                <div th:replace="~{fragments/leia :: mascote(humor='FELIZ', estagio='ADULTA', tamanho='220px')}"></div>
+                <div id="leiaBalaoPrincipal" class="leia-balao" style="display: none; max-width: 280px; margin-left: auto; margin-right: auto;"></div>
+
+                <div style="position: relative; display: inline-block; margin: 10px 0;">
+                    <div th:replace="~{fragments/leia :: mascote(humor='FELIZ', estagio='ADULTA', tamanho='220px')}"></div>
+                </div>
+
+                <div class="leia-cenario__identidade">
+                    <h3 id="nomePetTextoPrincipal">Leia</h3>
+                    <p id="estagioTextoPrincipal">Fase adulta</p>
+                </div>
             </div>
-
-            <h3 id="nomePetTextoPrincipal" style="margin-top: 6px;">Leia</h3>
-            <p class="texto-suave" id="estagioTextoPrincipal" style="margin: 0 0 4px;">Fase adulta</p>
         </div>
 
         <!-- Stats rápidos -->
@@ -152,6 +171,38 @@
         document.getElementById('evolucaoBarraPreenchimento').style.width = progresso + '%';
     }
 
+    /**
+     * Aplica o cenário equipado atrás da Leia.
+     *
+     * Se o tema tiver um `codigoCena` com cena viva implementada
+     * (ver /js/scenes/*.js), o LeiaScenes.SceneManager monta os
+     * elementos SVG/animações dentro de #cenarioScene. Caso contrário
+     * — ou se nenhum cenário estiver equipado — cai no comportamento
+     * antigo: um gradiente CSS aplicado ao container. Nenhum dos dois
+     * caminhos move a Leia, que continua exatamente no mesmo lugar.
+     */
+    function aplicarCenario(cenarioEquipado) {
+        const temaSemCenaViva = !cenarioEquipado || !cenarioEquipado.codigoCena
+            || !window.LeiaScenes || !window.LeiaScenes.gerenciador.possuiCena(cenarioEquipado.codigoCena);
+
+        if (temaSemCenaViva && window.LeiaScenes) {
+            window.LeiaScenes.gerenciador.desmontar();
+        }
+
+        if (!cenarioEquipado) {
+            return;
+        }
+
+        document.getElementById('nomeCenarioTexto').innerHTML = `${cenarioEquipado.icone} ${cenarioEquipado.nome}`;
+
+        const cenaMontada = !temaSemCenaViva
+            && window.LeiaScenes.gerenciador.montar('cenarioScene', cenarioEquipado.codigoCena);
+
+        if (!cenaMontada && cenarioEquipado.gradiente) {
+            document.getElementById('cenarioContainer').style.setProperty('--leia-cenario-gradiente', cenarioEquipado.gradiente);
+        }
+    }
+
     async function carregarTelaLeia() {
         try {
             const [dashboard, inventario] = await Promise.all([
@@ -174,12 +225,7 @@
             renderizarListaAcessorios(cosmeticosEquipados);
 
             const cenarioEquipado = inventario.find(i => i.equipado && i.tipoItem === 'CENARIO');
-            if (cenarioEquipado) {
-                document.getElementById('nomeCenarioTexto').innerHTML = `${cenarioEquipado.icone} ${cenarioEquipado.nome}`;
-                if (cenarioEquipado.gradiente) {
-                    document.getElementById('cenarioContainer').style.setProperty('--leia-cenario-gradiente', cenarioEquipado.gradiente);
-                }
-            }
+            aplicarCenario(cenarioEquipado);
 
             const jardim = await Memora.chamarApi('/api/garden');
             const plantasAtivas = jardim.plantas.filter(p => !p.colhida).length;

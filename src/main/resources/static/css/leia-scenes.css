@@ -1,0 +1,490 @@
+/* ============================================================================
+ * leia-scenes.css
+ * ----------------------------------------------------------------------------
+ * Estilos e animações do sistema de CENÁRIOS VIVOS da Leia.
+ *
+ * Regra de performance seguida em TODO este arquivo: toda animação usa
+ * apenas `transform` e `opacity` (propriedades que o navegador anima na
+ * GPU, sem reflow/repaint de layout). Não há nenhum `box-shadow` animado,
+ * nenhum `filter: blur()` contínuo e nenhuma animação de propriedades
+ * "caras" (width/height/top/left em loop). Onde um brilho é necessário,
+ * ele é resolvido com um <radialGradient> estático no SVG, não com CSS
+ * filter.
+ *
+ * Este arquivo é OS ESTILOS DE TODAS as cenas — cada cena referencia só
+ * as classes que usa. Adicionar uma cena nova = adicionar suas classes
+ * aqui (não é preciso mexer nas classes das cenas existentes).
+ * ============================================================================ */
+
+/* ---------- Contêiner: cena atrás do conteúdo, Leia nunca se move --------- */
+
+.leia-cenario {
+  position: relative;
+  overflow: hidden;
+}
+
+.leia-cenario__scene {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none; /* a área "vazia" da cena não intercepta cliques */
+}
+
+.leia-cenario__scene--ativa {
+  pointer-events: auto; /* liberado só quando existe uma cena viva montada */
+}
+
+.leia-cenario__conteudo {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---------------------------------------------------------------------------
+ * Legibilidade garantida sobre QUALQUER cenário
+ * ---------------------------------------------------------------------------
+ * Bug corrigido: "Leia" (h3) e "Fase filhote" (texto-suave) usavam a cor de
+ * texto padrão do site (--memora-ink-soft, um cinza-azulado pensado para
+ * fundos claros). Sobre céus noturnos e cenas escuras esse texto ficava
+ * quase invisível — exatamente o problema relatado.
+ *
+ * Em vez de tentar adivinhar uma cor de texto "que funcione" para cada
+ * cenário (frágil: todo cenário novo poderia quebrar de novo), o nome e a
+ * fase da Leia agora vivem dentro de um chip com vidro fosco (frosted
+ * glass): fundo semitransparente + blur, com cor de texto própria e fixa,
+ * de alto contraste. Isso garante leitura sobre céu claro, noite fechada,
+ * floresta escura etc., sem depender do que a cena desenha atrás.
+ * ========================================================================= */
+.leia-cenario__identidade {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  margin-top: 6px;
+  padding: 8px 20px 10px;
+  border-radius: var(--radius-md, 14px);
+  background: rgba(18, 22, 40, 0.42);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset;
+}
+
+.leia-cenario__identidade h3,
+.leia-cenario__identidade p {
+  margin: 0;
+  color: #F5F7FF !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+
+.leia-cenario__identidade p {
+  font-size: 0.85rem;
+  font-weight: 600;
+  opacity: 0.92;
+}
+
+.leia-cena-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.leia-cena-svg [role="button"] {
+  cursor: pointer;
+}
+.leia-cena-svg [role="button"]:focus-visible {
+  outline: 2px solid var(--memora-blue-500, #6685EE);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .leia-cena-svg * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ============================================================================
+ * QUARTO (bedroom-scene.js)
+ * ========================================================================= */
+
+.cena-cortina {
+  transform-origin: top center;
+  animation: leia-cortina-balanco 4.5s ease-in-out infinite;
+}
+.cena-cortina--dir { animation-delay: -2.2s; }
+
+@keyframes leia-cortina-balanco {
+  0%, 100% { transform: rotate(-1.4deg); }
+  50%      { transform: rotate(1.4deg); }
+}
+
+.cena-janela__sol,
+.cena-janela__lua-grupo,
+.cena-janela__estrela { transition: opacity 0.6s ease; }
+
+.cena-janela__lua-grupo,
+.cena-janela__estrela { opacity: 0; }
+
+.leia-cena-svg.cena--noite .cena-janela__ceu { fill: #223052; transition: fill 0.6s ease; }
+.leia-cena-svg.cena--noite .cena-janela__sol { opacity: 0; }
+.leia-cena-svg.cena--noite .cena-janela__lua-grupo { opacity: 1; }
+.leia-cena-svg.cena--noite .cena-janela__estrela {
+  opacity: 1;
+  animation: leia-estrela-pisca 2.4s ease-in-out infinite;
+  animation-delay: var(--atraso, 0s);
+}
+
+@keyframes leia-estrela-pisca {
+  0%, 100% { opacity: 0.3; }
+  50%      { opacity: 1; }
+}
+
+.cena-luminaria__brilho { opacity: 0; transition: opacity 0.4s ease; }
+.leia-cena-svg:not(.cena--luz-apagada) .cena-luminaria__brilho {
+  opacity: 1;
+  animation: leia-luminaria-pulso 3.2s ease-in-out infinite;
+}
+.cena-luminaria--desligada .cena-luminaria__cupula,
+.leia-cena-svg.cena--luz-apagada .cena-luminaria__cupula { fill: #C9B98A; }
+
+@keyframes leia-luminaria-pulso {
+  0%, 100% { opacity: 0.75; }
+  50%      { opacity: 1; }
+}
+
+.cena-relogio__ponteiro-hora {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: leia-relogio-girar 60s linear infinite;
+}
+.cena-relogio__ponteiro-minuto {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: leia-relogio-girar 8s linear infinite;
+}
+@keyframes leia-relogio-girar {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ============================================================================
+ * NOITE ESTRELADA (starry-night-scene.js)
+ * ========================================================================= */
+
+.cena-estrela-ponto {
+  /* Bug corrigido: antes esta classe não definia `fill`, então o SVG usava
+     preto por padrão e as estrelas apareciam como bolinhas pretas em vez
+     de brilharem. */
+  fill: #EAF2FF;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: leia-estrela-pisca var(--duracao, 3s) ease-in-out infinite;
+  animation-delay: var(--atraso, 0s);
+}
+@keyframes leia-estrela-pisca {
+  0%, 100% { opacity: 0.25; transform: scale(1); }
+  50%      { opacity: 1;    transform: scale(1.15); }
+}
+
+.cena-estrela-brilhante {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: leia-estrela-brilho var(--duracao, 3.4s) ease-in-out infinite;
+  animation-delay: var(--atraso, 0s);
+}
+@keyframes leia-estrela-brilho {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50%      { opacity: 1;    transform: scale(1.18); }
+}
+.cena-estrela-brilhante--brilhando {
+  animation: leia-estrela-brilho-forte 1.6s ease-out;
+}
+@keyframes leia-estrela-brilho-forte {
+  0%   { opacity: 1; transform: scale(1); }
+  30%  { opacity: 1; transform: scale(1.8); }
+  100% { opacity: 0.7; transform: scale(1); }
+}
+
+.cena-nuvem-camada {
+  animation: leia-nuvem-deriva var(--duracao, 40s) linear infinite;
+  animation-delay: var(--atraso, 0s);
+}
+.cena-nuvem-camada--longe { opacity: 0.85; }
+.cena-nuvem-camada--perto { opacity: 1; }
+@keyframes leia-nuvem-deriva {
+  from { transform: translate(-160px, var(--y, 30px)); }
+  to   { transform: translate(560px, var(--y, 30px)); }
+}
+
+.cena-nevoa {
+  animation: leia-nevoa-respirar 9s ease-in-out infinite;
+}
+@keyframes leia-nevoa-respirar {
+  0%, 100% { opacity: 0.7; }
+  50%      { opacity: 1; }
+}
+
+.cena-morro { transition: opacity 0.4s ease; }
+
+.cena-pinheiros { pointer-events: none; }
+
+.cena-vaga-lume {
+  transform-box: fill-box;
+  animation: leia-vaga-lume-piscar var(--duracao, 4s) ease-in-out infinite;
+  animation-delay: var(--atraso, 0s);
+}
+
+.cena-lua { transform-box: fill-box; transform-origin: center; cursor: pointer; }
+.cena-lua circle:first-child {
+  animation: leia-lua-glow 5s ease-in-out infinite;
+}
+@keyframes leia-lua-glow {
+  0%, 100% { opacity: 0.4; }
+  50%      { opacity: 0.7; }
+}
+
+.cena-estrela-cadente {
+  stroke: url(#noiteCadenteTraco);
+  stroke-width: 2;
+  stroke-linecap: round;
+  opacity: 0;
+  animation: leia-cadente-cruzar 0.9s ease-out forwards;
+}
+@keyframes leia-cadente-cruzar {
+  0%   { opacity: 0; transform: translate(60px, -30px); }
+  15%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(-60px, 30px); }
+}
+
+/* ============================================================================
+ * FLORESTA (forest-scene.js)
+ * ========================================================================= */
+
+.cena-arvore__copa {
+  transform-box: fill-box;
+  animation: leia-copa-vento 5s ease-in-out infinite;
+}
+.cena-arvore:nth-of-type(2n) .cena-arvore__copa { animation-delay: -2s; }
+@keyframes leia-copa-vento {
+  0%, 100% { transform: rotate(-1.2deg); }
+  50%      { transform: rotate(1.2deg); }
+}
+
+.cena-arbusto { transform-box: fill-box; transform-origin: bottom center; animation: leia-copa-vento 6s ease-in-out infinite; }
+
+.cena-flor {
+  transform-box: fill-box;
+  transform-origin: bottom center;
+  animation: leia-flor-balanco 3.6s ease-in-out infinite;
+  animation-delay: var(--atraso, 0s);
+}
+@keyframes leia-flor-balanco {
+  0%, 100% { transform: rotate(-4deg); }
+  50%      { transform: rotate(4deg); }
+}
+
+.cena-folha-caindo {
+  transform-box: fill-box;
+  animation: leia-folha-cair var(--duracao, 2.2s) ease-in forwards;
+  animation-delay: var(--atraso, 0s);
+}
+@keyframes leia-folha-cair {
+  0%   { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate(var(--deriva, 12px), 90px) rotate(180deg); opacity: 0; }
+}
+
+.cena-vaga-lume {
+  transform-box: fill-box;
+  animation: leia-vaga-lume-piscar var(--duracao, 4s) ease-in-out infinite;
+  animation-delay: var(--atraso, 0s);
+}
+@keyframes leia-vaga-lume-piscar {
+  0%, 100% { opacity: 0.15; transform: translate(0, 0); }
+  50%      { opacity: 0.9;  transform: translate(6px, -8px); }
+}
+
+/* ============================================================================
+ * PRAIA (beach-scene.js)
+ * ========================================================================= */
+
+.cena-onda--1 {
+  animation: leia-onda-fluir 6s linear infinite;
+}
+.cena-onda--2 {
+  animation: leia-onda-fluir 8s linear infinite reverse;
+  opacity: 0.85;
+}
+@keyframes leia-onda-fluir {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-80px); }
+}
+
+.cena-mar-brilho ellipse {
+  animation: leia-mar-brilho 3.4s ease-in-out infinite;
+}
+@keyframes leia-mar-brilho {
+  0%, 100% { opacity: 0.35; }
+  50%      { opacity: 0.75; }
+}
+
+.cena-onda-extra {
+  transform-box: fill-box;
+  animation: leia-onda-extra-expandir 0.9s ease-out forwards;
+}
+@keyframes leia-onda-extra-expandir {
+  0%   { r: 2; opacity: 0.9; }
+  100% { r: 26; opacity: 0; }
+}
+
+.cena-palmeira__copa {
+  animation: leia-copa-vento 4.6s ease-in-out infinite;
+  animation-delay: var(--atraso, 0s);
+}
+
+.cena-gaivota {
+  animation: leia-gaivota-voar var(--duracao, 10s) linear infinite;
+  animation-delay: var(--atraso, 0s);
+  cursor: pointer;
+}
+.cena-gaivota__asas {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: leia-gaivota-bater-asas 0.7s ease-in-out infinite;
+}
+.cena-gaivota--assustada .cena-gaivota__asas {
+  animation-duration: 0.18s;
+}
+@keyframes leia-gaivota-voar {
+  0%   { transform: translate(-20px, var(--altura, 40px)); }
+  50%  { transform: translate(180px, calc(var(--altura, 40px) - 16px)); }
+  100% { transform: translate(380px, var(--altura, 40px)); }
+}
+@keyframes leia-gaivota-bater-asas {
+  0%, 100% { transform: scaleY(1); }
+  50%      { transform: scaleY(0.4); }
+}
+
+/* ============================================================================
+ * CIDADE (city-scene.js)
+ * ========================================================================= */
+
+.cena-janela-predio {
+  fill: #12162A;
+  transition: fill 0.3s ease;
+}
+.cena-janela-predio--acesa {
+  fill: #FFC94D;
+  animation: leia-janela-cintilar 5s ease-in-out infinite;
+  animation-delay: var(--atraso, 0s);
+}
+@keyframes leia-janela-cintilar {
+  0%, 92%, 100% { opacity: 1; }
+  95%           { opacity: 0.55; }
+}
+
+.cena-placa-neon__texto {
+  animation: leia-neon-pulso 2.6s ease-in-out infinite;
+}
+.cena-placa-neon--flicker .cena-placa-neon__texto {
+  animation: leia-neon-flicker 1.4s steps(1, end);
+}
+@keyframes leia-neon-pulso {
+  0%, 100% { opacity: 0.75; }
+  50%      { opacity: 1; }
+}
+@keyframes leia-neon-flicker {
+  0%, 100% { opacity: 1; }
+  10%, 30%, 50% { opacity: 0.2; }
+  20%, 40%, 60%, 80% { opacity: 1; }
+}
+
+.cena-carro {
+  animation: leia-carro-passar var(--duracao, 5s) linear forwards;
+}
+@keyframes leia-carro-passar {
+  from { transform: translate(-30px, var(--y, 210px)); }
+  to   { transform: translate(430px, var(--y, 210px)); }
+}
+
+.cena-rua-faixa {
+  animation: leia-faixa-deslizar 1.2s linear infinite;
+}
+@keyframes leia-faixa-deslizar {
+  from { stroke-dashoffset: 0; }
+  to   { stroke-dashoffset: -18; }
+}
+
+/* ============================================================================
+ * BIBLIOTECA (library-scene.js)
+ * Reaproveita propositalmente keyframes já existentes (nenhum keyframe novo
+ * precisou ser criado): poeira ~ vaga-lume, página caindo ~ folha caindo.
+ * ========================================================================= */
+
+.cena-poeira {
+  transform-box: fill-box;
+  animation: leia-vaga-lume-piscar var(--duracao, 4s) ease-in-out infinite;
+  animation-delay: var(--atraso, 0s);
+}
+
+.cena-pagina-caindo {
+  transform-box: fill-box;
+  animation: leia-folha-cair var(--duracao, 2.2s) ease-in forwards;
+  animation-delay: var(--atraso, 0s);
+}
+
+/* ============================================================================
+ * UNIVERSIDADE (university-scene.js)
+ * A bandeira reaproveita o balanço já usado pelas cortinas do quarto.
+ * ========================================================================= */
+
+.cena-bandeira {
+  transform-box: fill-box;
+  transform-origin: top left;
+  animation: leia-cortina-balanco 3s ease-in-out infinite;
+}
+.cena-bandeira--tremulando {
+  animation-duration: 0.9s;
+}
+
+.cena-sino-badalada {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: leia-sino-badalar 1.2s ease-out;
+}
+@keyframes leia-sino-badalar {
+  0%   { transform: rotate(0deg); }
+  20%  { transform: rotate(-14deg); }
+  50%  { transform: rotate(10deg); }
+  75%  { transform: rotate(-6deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* ============================================================================
+ * CAFÉ ACONCHEGANTE (cafe-scene.js)
+ * As luzes de varal reaproveitam o mesmo pulso da luminária do quarto.
+ * ========================================================================= */
+
+.cena-luz-string {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: leia-luminaria-pulso 3s ease-in-out infinite;
+  animation-delay: var(--atraso, 0s);
+}
+
+.cena-vapor {
+  transform-box: fill-box;
+  transform-origin: bottom center;
+  animation: leia-vapor-subir var(--duracao, 2.6s) ease-out forwards;
+  animation-delay: var(--atraso, 0s);
+}
+@keyframes leia-vapor-subir {
+  0%   { opacity: 0;   transform: translate(0, 0) scale(0.7); }
+  25%  { opacity: 0.5; }
+  100% { opacity: 0;   transform: translate(4px, -30px) scale(1.15); }
+}
+
+.cena-varal--quente .cena-luz-string {
+  fill: #FFC94D;
+  animation-duration: 1.4s;
+}

@@ -55,6 +55,20 @@ public class BackgroundTheme {
     @Column(nullable = false, length = 200)
     private String gradiente;
 
+    /**
+     * Código estável que identifica uma implementação de cena viva no
+     * frontend (ver `static/js/scenes/*.js`, cada uma se registrando no
+     * `LeiaScenes.gerenciador` sob um destes códigos — ex.: "quarto",
+     * "noite-estrelada", "floresta", "praia", "cidade").
+     *
+     * É NULO de propósito para os temas que ainda não ganharam uma cena
+     * viva (ex.: Biblioteca, Universidade, Café Aconchegante) — nesse
+     * caso o frontend aplica o fallback antigo de `gradiente` como
+     * `background` do container, sem nenhuma quebra de funcionalidade.
+     */
+    @Column(name = "codigo_cena", length = 40)
+    private String codigoCena;
+
     @Column(nullable = false)
     @Builder.Default
     private boolean ativo = true;

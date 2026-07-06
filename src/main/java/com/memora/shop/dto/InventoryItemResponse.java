@@ -9,6 +9,7 @@ public record InventoryItemResponse(
         String icone,
         String posicaoOverlay,
         String gradiente,
+        String codigoCena,
         boolean equipado
 ) {
 }

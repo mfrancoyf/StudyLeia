@@ -1,47 +1,39 @@
+# ============================================================================
+# Memora — Leia Edition — docker-compose
+#
+# Uso: basta rodar `docker compose up --build` na raiz do projeto.
+# Nenhuma configuração manual é necessária — o MySQL já nasce com o banco
+# `memora_db` criado, e a aplicação já aponta para o serviço `mysql` (não
+# `localhost`) via a variável SPRING_DATASOURCE_URL abaixo, que tem
+# precedência sobre o valor padrão do application.yml.
+#
+# Para usar uma chave de IA real (Gemini/Groq/OpenRouter) em vez do
+# provider MOCK, defina as variáveis de ambiente correspondentes antes
+# de subir o compose, ex.:
+#   MEMORA_IA_PROVIDER=GEMINI GEMINI_API_KEY=sua-chave docker compose up
+# ============================================================================
+
 services:
 
   mysql:
     image: mysql:8.0
     container_name: memora-mysql
     restart: unless-stopped
-
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-memora_root_pw}
       MYSQL_DATABASE: memora_db
       MYSQL_CHARACTER_SET_SERVER: utf8mb4
       MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
-
     ports:
       - "3306:3306"
-
     volumes:
       - memora-mysql-data:/var/lib/mysql
-
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-memora_root_pw}"]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 20s
-
-    networks:
-      - memora-network
-
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: memora-phpmyadmin
-    restart: unless-stopped
-
-    depends_on:
-      - mysql
-
-    environment:
-      PMA_HOST: mysql
-      PMA_PORT: 3306
-
-    ports:
-      - "8081:80"
-
     networks:
       - memora-network
 
@@ -49,42 +41,32 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-
     container_name: memora-app
     restart: unless-stopped
-
     depends_on:
       mysql:
         condition: service_healthy
-
-    env_file:
-      - .env
-
     environment:
+      # Sobrescreve a URL do datasource do application.yml — usa o
+      # nome do serviço Docker ("mysql") em vez de "localhost", já que
+      # dentro da rede do compose os containers se enxergam pelo nome
+      # do serviço.
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/memora_db?createDatabaseIfNotExist=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=America/Sao_Paulo
       SPRING_DATASOURCE_USERNAME: root
-      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-
-      SPRING_PROFILES_ACTIVE: prod
-
-      JWT_SECRET: ${JWT_SECRET}
-
-      MEMORA_IA_PROVIDER: ${MEMORA_IA_PROVIDER}
-
-      GEMINI_API_KEY: ${GEMINI_API_KEY}
-      GROQ_API_KEY: ${GROQ_API_KEY}
-      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
-
-      MAIL_HOST: ${MAIL_HOST}
-      MAIL_PORT: ${MAIL_PORT}
-      MAIL_USERNAME: ${MAIL_USERNAME}
-      MAIL_PASSWORD: ${MAIL_PASSWORD}
-
-      APP_BASE_URL: ${APP_BASE_URL}
-
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD:-memora_root_pw}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      JWT_SECRET: ${JWT_SECRET:-memora-leia-edition-chave-secreta-trocar-em-producao-32bytes+}
+      MEMORA_IA_PROVIDER: ${MEMORA_IA_PROVIDER:-MOCK}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      MAIL_HOST: ${MAIL_HOST:-smtp.gmail.com}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080}
     ports:
       - "8080:8080"
-
     networks:
       - memora-network
 

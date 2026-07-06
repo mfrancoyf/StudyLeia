@@ -37,29 +37,32 @@ usuária **e** a felicidade da sua mascote virtual, a gatinha **Leia**.
 
 ## 📌 Sobre o projeto
 
-Manter uma rotina de estudos consistente é, na prática, um problema de
-**motivação contínua** — não de falta de ferramentas para anotar, planejar ou
-testar conhecimento. Existem dezenas de apps de notas e de flashcards; o que
-costuma faltar é um motivo emocional para abrir o app de novo amanhã.
+A ideia do projeto surgiu porque minha namorada estava se preparando para
+o vestibular, e eu queria fazer algo que ajudasse ela a manter o ritmo de
+estudo, porque a parte mais difícil nunca é entender o conteúdo, é voltar
+a abrir o caderno todo dia. Ela tem uma gata de verdade chamada **Leia**,
+que é praticamente parte da família lá em casa, e pensei: e se eu
+transformasse essa gata em uma mascote virtual, que evolui e fica feliz
+conforme ela estuda? Foi assim que a Leia do app nasceu, com nome e jeito
+inspirados na gata de verdade, antes mesmo de eu escrever a primeira linha
+de código de gamificação.
 
-O **StudyLeia** ataca esse problema unindo três ingredientes em uma única
-experiência coesa:
+O projeto acabou servindo pra duas coisas ao mesmo tempo. Pra ela, virou
+uma forma de manter a constância nos estudos pra prova mais importante da
+vida acadêmica dela até agora. Pra mim, virou a desculpa perfeita pra
+sair do tutorial e do to-do-list genérico e praticar de verdade
+arquitetura de software, Spring Security, modelagem de banco e frontend
+mobile-first, em um sistema grande o suficiente pra me obrigar a tomar
+decisões reais.
 
-- 🎮 **Gamificação real, não cosmética** — XP, nível, moedas, streak e
-  conquistas conectados a uma fórmula de progressão única, centralizada em um
-  único serviço, e não a números soltos espalhados pela interface;
-- 🐱 **Uma mascote com estado persistente** — a Leia tem humor e estágio de
-  evolução que reagem diretamente ao comportamento de estudo da usuária,
-  criando um vínculo afetivo que uma barra de progresso tradicional não gera;
-- 🧠 **Ferramentas de estudo de verdade** — quizzes (manuais ou gerados por
-  IA), planos de estudo com cronograma, calendário de provas, modo foco
-  (Pomodoro) e um painel de estatísticas, todos como fonte de XP da Leia.
-
-A inspiração de design é a mesma por trás de *Duolingo* e de um *Tamagotchi*:
-cuidar de algo gera consistência. Aqui esse princípio é aplicado a hábitos de
-estudo reais, com uma mascote que tem nome, personalidade visual própria e
-reage no mesmo dia em que a usuária estuda — não em um relatório semanal.
-
+E por isso o StudyLeia não tem aquelas features genéricas que todo app de
+estudo tem só porque "tem que ter". Cada módulo nasceu de uma necessidade
+concreta que apareceu enquanto ela estudava: faltava constância, então
+nasceu o streak. Faltava se sentir acompanhada enquanto estudava sozinha,
+então a Leia passou a reagir a cada XP ganho. Faltava organizar o
+conteúdo gigante do vestibular, então nasceu o plano de estudos gerado
+por IA. Faltava revisar rápido entre uma matéria e outra, então nasceu o
+quiz.
 ---
 
 ## 🎬 Demonstração

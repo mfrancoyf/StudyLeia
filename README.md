@@ -4,8 +4,10 @@
 
 ### Gamified Study Platform — Take care of Leia. Build consistent habits.
 
-<!-- 🎬 Espaço reservado para o GIF de demonstração oficial (navegação fim a fim) -->
-<img src="./assets/banner.png" alt="StudyLeia — gamifique seus estudos, evolua todos os dias" width="100%" />
+
+<!-- 🎬 GIF de demonstração — substitua este banner estático pelo GIF real quando tiver gravado -->
+<img src="./assets/Banner.gif" alt="StudyLeia — gamifique seus estudos, evolua todos os dias" width="100%" />
+
 
 <br />
 

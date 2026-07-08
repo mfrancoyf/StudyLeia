@@ -88,31 +88,33 @@ public class GeminiAIProvider implements AIProvider {
         }
     }
 
-    private String chamarGemini(String prompt) {
-        try {
-            Map<String, Object> corpo = Map.of(
-                    "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt))))
-            );
+   private String chamarGemini(String prompt) {
+    try {
+        Map<String, Object> corpo = Map.of(
+                "contents", List.of(Map.of("parts", List.of(Map.of("text", prompt))))
+        );
 
-            JsonNode resposta = webClient.post()
-                    .uri(uriBuilder -> uriBuilder
-                            .path("/{modelo}:generateContent")
-                            .queryParam("key", apiKey)
-                            .build(modelo))
-                    .bodyValue(corpo)
-                    .retrieve()
-                    .bodyToMono(JsonNode.class)
-                    .block();
+        JsonNode resposta = webClient.post()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/{modelo}:generateContent")
+                        .queryParam("key", apiKey)
+                        .build(modelo))
+                .bodyValue(corpo)
+                .retrieve()
+                .bodyToMono(JsonNode.class)
+                .block();
 
-            return resposta
-                    .path("candidates").get(0)
-                    .path("content").path("parts").get(0)
-                    .path("text").asText();
+        return resposta
+                .path("candidates").get(0)
+                .path("content").path("parts").get(0)
+                .path("text").asText();
 
-        } catch (Exception ex) {
-            throw new IntegracaoIAException("Falha ao chamar a API do Gemini: " + ex.getMessage(), ex);
-        }
+    } catch (Exception ex) {
+        log.error("Erro ao chamar Gemini", ex);
+        throw new IntegracaoIAException(
+                "Falha ao chamar a API do Gemini", ex);
     }
+}
 
     private List<QuestaoGerada> parsearQuestoes(String jsonTexto) {
         try {

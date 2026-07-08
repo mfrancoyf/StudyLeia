@@ -1,0 +1,62 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/*
+ * StudyLeia — Design tokens
+ * Azul como cor principal (cor favorita da usuária), com gradientes
+ * suaves e um tom acolhedor — inspirado em Duolingo/Notion/Finch,
+ * evitando qualquer aparência corporativa.
+ */
+@theme {
+  /* Azul principal — usado em CTAs, destaques e na identidade da Leia */
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-200: #bfdbfe;
+  --color-brand-300: #93c5fd;
+  --color-brand-400: #60a5fa;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+  --color-brand-800: #1e40af;
+  --color-brand-900: #1e3a8a;
+
+  /* Acento lavanda — usado com moderação para dar um toque afetivo,
+     sem competir com o azul principal */
+  --color-accent-400: #a78bfa;
+  --color-accent-500: #8b5cf6;
+
+  /* Feedback de gamificação */
+  --color-success-500: #22c55e;
+  --color-warning-500: #f59e0b;
+  --color-danger-500: #ef4444;
+  --color-xp-500: #fbbf24;
+  --color-coin-500: #fbbf24;
+
+  /* Paleta da Leia — a gata de verdade: pelagem creme, padrão
+     "tortie point" (mistura de siamês com tartaruga) — manchas
+     caramelo E manchas quase pretas assimétricas no rosto, orelhas
+     escuras, olhos azuis bem vívidos. Independente do azul de marca
+     da interface (esses tokens não mudam se o tema do app mudar). */
+  --color-leia-fur: #f6e8d0;
+  --color-leia-fur-shade: #ecd3ab;
+  --color-leia-patch: #d19a5c;
+  --color-leia-patch-dark: #372620;
+  --color-leia-point: #3d2a20;
+  --color-leia-ear-inner: #f8cdd6;
+  --color-leia-eyes: #4a9bdb;
+  --color-leia-nose: #e8909f;
+  --color-leia-blush: #f5a8b8;
+
+  --font-sans: "Poppins", "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-card: 1rem;
+  --radius-pill: 999px;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  @apply bg-gradient-to-b from-brand-50 to-white text-slate-800 antialiased;
+}

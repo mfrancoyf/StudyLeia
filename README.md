@@ -5,7 +5,7 @@
 ### Gamify your studies. Take care of Leia. Build consistent habits.
 
 <!-- 🎬 GIF de demonstração — substitua este banner estático pelo GIF real quando tiver gravado -->
-<img src="./assets/banner.png" alt="StudyLeia — gamifique seus estudos, evolua todos os dias" width="100%" />
+<img src="./assets/Banner.gif" alt="StudyLeia — gamifique seus estudos, evolua todos os dias" width="30%" />
 
 <br />
 

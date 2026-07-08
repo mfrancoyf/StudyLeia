@@ -1,0 +1,28 @@
+# Java / Maven
+backend/target/
+
+# React
+frontend/node_modules/
+frontend/dist/
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# Ambiente
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# Sistema
+.DS_Store
+Thumbs.db

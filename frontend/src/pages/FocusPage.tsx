@@ -18,7 +18,7 @@ export default function FocusPage() {
   const [rodando, setRodando] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const { react, setMood } = useLeiaReaction();
+  const { mood, react } = useLeiaReaction();
   const { accessories } = useEquippedAccessories();
   const { toast } = useToast();
   const { data: minutosHoje } = useMinutosFocoHoje();
@@ -28,7 +28,6 @@ export default function FocusPage() {
 
   useEffect(() => {
     if (rodando) {
-      setMood("NEUTRA");
       intervalRef.current = setInterval(() => {
         setSegundosRestantes((s) => {
           if (s <= 1) {
@@ -90,7 +89,7 @@ export default function FocusPage() {
           <span className="text-xs font-semibold uppercase tracking-wide text-brand-500">
             {tipo === "FOCO" ? "Foco" : "Pausa"}
           </span>
-          <LeiaMascot mood={rodando ? "FELIZ" : "NEUTRA"} reaction={rodando ? "estudando" : "nenhuma"} size="lg" accessories={accessories} />
+          <LeiaMascot mood={mood} reaction={rodando ? "estudando" : "nenhuma"} size="lg" accessories={accessories} />
           <p className="text-5xl font-bold tabular-nums text-slate-800">
             {minutos}:{segundos}
           </p>

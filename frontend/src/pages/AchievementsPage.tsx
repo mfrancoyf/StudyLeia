@@ -5,10 +5,30 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { gamificationService } from "@/services/gamification";
 
 export default function AchievementsPage() {
-  const { data: conquistas, isLoading } = useQuery({
+  const { data: catalogo, isLoading: isLoadingCatalogo } = useQuery({
     queryKey: ["gamification", "achievements", "catalogo"],
     queryFn: gamificationService.catalogoAchievements,
   });
+
+  const { data: desbloqueadasList, isLoading: isLoadingDesbloqueadas } = useQuery({
+    queryKey: ["gamification", "achievements"],
+    queryFn: gamificationService.achievements,
+  });
+
+  const isLoading = isLoadingCatalogo || isLoadingDesbloqueadas;
+
+  // O catálogo traz todos os tipos possíveis, mas sempre com
+  // desbloqueadaEm nulo (é estático). Precisamos mesclar com a lista
+  // de conquistas realmente desbloqueadas pelo usuário para saber
+  // quais já foram concluídas e quando.
+  const desbloqueadasPorTipo = new Map(
+    (desbloqueadasList ?? []).map((d) => [d.tipo, d.desbloqueadaEm])
+  );
+
+  const conquistas = catalogo?.map((c) => ({
+    ...c,
+    desbloqueadaEm: desbloqueadasPorTipo.get(c.tipo) ?? null,
+  }));
 
   const desbloqueadas = conquistas?.filter((c) => c.desbloqueadaEm).length ?? 0;
 

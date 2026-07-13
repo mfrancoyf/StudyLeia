@@ -11,12 +11,17 @@ export interface ProgressoResponse {
 
 export type TipoConquista =
   | "PRIMEIRA_PROVA"
+  | "SEQUENCIA_7_DIAS"
+  | "SEQUENCIA_30_DIAS"
   | "CEM_QUESTOES_RESPONDIDAS"
   | "MIL_XP"
   | "CINCO_MIL_XP"
   | "PRIMEIRA_ANOTACAO"
   | "PRIMEIRO_PLANO_CONCLUIDO"
-  | "DEZ_QUIZZES_CRIADOS";
+  | "DEZ_QUIZZES_CRIADOS"
+  | "NIVEL_10"
+  | "NIVEL_20"
+  | "NIVEL_30";
 
 export interface AchievementResponse {
   tipo: TipoConquista;

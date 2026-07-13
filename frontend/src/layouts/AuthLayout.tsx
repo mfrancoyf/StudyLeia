@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { motion } from "framer-motion";
-import { LeiaMascot } from "@/features/leia/components/LeiaMascot";
+import { LeiaWelcomeAnimation } from "@/features/leia/components/LeiaWelcomeAnimation";
 
 interface AuthLayoutProps {
   titulo: string;
@@ -25,7 +25,7 @@ export function AuthLayout({ titulo, subtitulo, children }: AuthLayoutProps) {
         className="w-full max-w-sm rounded-card border border-brand-100 bg-white/90 p-8 shadow-xl shadow-brand-900/5 backdrop-blur"
       >
         <div className="mb-6 flex flex-col items-center gap-2 text-center">
-          <LeiaMascot mood="FELIZ" size="md" />
+          <LeiaWelcomeAnimation size={128} />
           <h1 className="text-xl font-bold text-slate-800">{titulo}</h1>
           <p className="text-sm text-slate-500">{subtitulo}</p>
         </div>
